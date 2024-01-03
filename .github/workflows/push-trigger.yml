@@ -39,7 +39,7 @@ jobs:
     needs: build-maven-digital-credential-plugins
     uses: mosip/kattu/.github/workflows/maven-publish-to-nexus.yml@master
     with:
-      SERVICE_LOCATION: ./sunbird-rc-esignet-integration-impl
+      SERVICE_LOCATION: sunbird-rc-esignet-integration-impl
     secrets:
       OSSRH_USER: ${{ secrets.OSSRH_USER }}
       OSSRH_SECRET: ${{ secrets.OSSRH_SECRET }}
@@ -52,7 +52,7 @@ jobs:
     strategy:
       matrix:
         include:
-          - SERVICE_LOCATION: './sunbird-rc-esignet-integration-impl'
+          - SERVICE_LOCATION: 'sunbird-rc-esignet-integration-impl'
             SERVICE_NAME: 'digital-credential-plugins'
             BUILD_ARTIFACT: 'digital-credential-plugins'
       fail-fast: false
