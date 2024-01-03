@@ -23,7 +23,14 @@
 		<url>https://github.com/mosip/digital-credential-plugins</url>
 		<tag>HEAD</tag>
 	</scm>
-
+	<developers>
+		<developer>
+			<name>Mosip</name>
+			<email>mosip.emailnotifier@gmail.com</email>
+			<organization>io.mosip</organization>
+			<organizationUrl>https://github.com/mosip/digital-credential-plugins</organizationUrl>
+		</developer>
+	</developers>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<java.version>11</java.version>
