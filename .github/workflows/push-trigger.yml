@@ -49,6 +49,7 @@ jobs:
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
   build-dockers:
+    needs: build-maven-digital-credential-plugins
     strategy:
       matrix:
         include:
