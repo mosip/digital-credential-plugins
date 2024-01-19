@@ -22,7 +22,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestTemplate;
 
@@ -55,7 +54,7 @@ public class SunbirdRCVCIssuancePluginTest {
         velocityEngine=new VelocityEngine();
         velocityEngine.setProperty("resource.loader", "class");
         velocityEngine.setProperty("class.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
-        template=velocityEngine.getTemplate("requestTemplete.json");
+        template=velocityEngine.getTemplate("InsurenceCredential.json");
 
         Map<String,Template> credentialTypeTemplatesMap=new HashMap<>();
         credentialTypeTemplatesMap.put("InsurenceCredential",template);
