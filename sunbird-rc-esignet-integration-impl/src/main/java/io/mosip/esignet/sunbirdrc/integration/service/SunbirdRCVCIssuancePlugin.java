@@ -89,7 +89,7 @@ public class SunbirdRCVCIssuancePlugin implements VCIssuancePlugin {
 
 
     @PostConstruct
-    public  void initialize() throws VCIExchangeException {
+    private void initialize() throws VCIExchangeException {
         vEngine = new VelocityEngine();
         URLResourceLoader urlResourceLoader = new URLResourceLoader() {
             @Override

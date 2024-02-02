@@ -17,14 +17,19 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.env.Environment;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -32,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 
 @RunWith(MockitoJUnitRunner.class)
+@SpringBootTest
 public class SunbirdRCVCIssuancePluginTest {
 
     @Mock
@@ -47,6 +53,13 @@ public class SunbirdRCVCIssuancePluginTest {
     private SunbirdRCVCIssuancePlugin sunbirdRCVCIssuancePlugin;
 
     private VelocityEngine velocityEngine;
+
+    private Map<String,Map<String,String>> credentialTypeConfigMap;
+
+    private Map<String,Template> credentialTypeTemplatesMap;
+
+    @Autowired
+    private ResourceLoader resourceLoader;
     Template template;
 
     @Before
@@ -56,10 +69,10 @@ public class SunbirdRCVCIssuancePluginTest {
         velocityEngine.setProperty("class.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
         template=velocityEngine.getTemplate("InsurenceCredential.json");
 
-        Map<String,Template> credentialTypeTemplatesMap=new HashMap<>();
+        credentialTypeTemplatesMap=new HashMap<>();
         credentialTypeTemplatesMap.put("InsurenceCredential",template);
 
-        Map<String,Map<String,String>> credentialTypeConfigMap=new HashMap<>();
+        credentialTypeConfigMap=new HashMap<>();
         Map<String,String> credentialMap=new HashMap<>();
         credentialMap.put("registry-get-url","url");
         credentialTypeConfigMap.put("InsurenceCredential",credentialMap);
@@ -69,6 +82,13 @@ public class SunbirdRCVCIssuancePluginTest {
         ReflectionTestUtils.setField(sunbirdRCVCIssuancePlugin,"credentialTypeConfigMap",credentialTypeConfigMap);
     }
 
+    @Test
+    public void initialize_ValidDetails_ThenPass() throws IOException, VCIExchangeException {
+        File file = new File("src/test/resources/InsurenceCredential.json");
+        String credentialPath = "file:/" + file.getAbsolutePath();
+        Mockito.when(environment.getProperty(Mockito.anyString())).thenReturn(credentialPath);
+        ReflectionTestUtils.invokeMethod(sunbirdRCVCIssuancePlugin, "initialize");
+    }
 
     @Test
     public void getVerifiableCredentialWithLinkedDataProof_ValidDetails_ThenPass() throws VCIExchangeException, JsonProcessingException {
@@ -122,13 +142,10 @@ public class SunbirdRCVCIssuancePluginTest {
         }catch (VCIExchangeException e){
             Assert.assertEquals(e.getErrorCode(), ErrorConstants.VCI_EXCHANGE_FAILED);
         }
-
-
     }
 
     @Test
     public void getVerifiableCredentialWithLinkedDataProof_InValidSupportedCredential_ThenFail()  {
-        ReflectionTestUtils.setField(sunbirdRCVCIssuancePlugin,"supportedCredentialTypes",List.of("InsurenceCredential"));
         try{
             VCRequestDto vcRequestDto=new VCRequestDto();
             List<String> types=new ArrayList<>();
@@ -139,8 +156,6 @@ public class SunbirdRCVCIssuancePluginTest {
         }catch (VCIExchangeException e){
             Assert.assertEquals(e.getErrorCode(), ErrorConstants.VCI_EXCHANGE_FAILED);
         }
-
-
     }
 
     @Test
@@ -179,17 +194,6 @@ public class SunbirdRCVCIssuancePluginTest {
 
     @Test
     public void getVerifiableCredentialWithLinkedDataProof_InValidCredentialDetails_ThenFail() throws VCIExchangeException, JsonProcessingException {
-        Map<String,Template> credentialTypeTemplatesMap=new HashMap<>();
-        credentialTypeTemplatesMap.put("InsurenceCredential",template);
-
-        Map<String,Map<String,String>> credentialTypeConfigMap=new HashMap<>();
-        Map<String,String> credentialMap=new HashMap<>();
-        credentialMap.put("registry-get-url","url");
-        credentialTypeConfigMap.put("InsurenceCredential",credentialMap);
-
-        ReflectionTestUtils.setField(sunbirdRCVCIssuancePlugin,"supportedCredentialTypes",List.of("InsurenceCredential"));
-        ReflectionTestUtils.setField(sunbirdRCVCIssuancePlugin,"credentialTypeTemplates",credentialTypeTemplatesMap);
-        ReflectionTestUtils.setField(sunbirdRCVCIssuancePlugin,"credentialTypeConfigMap",credentialTypeConfigMap);
 
         VCRequestDto vcRequestDto=new VCRequestDto();
         List<String> contextList=List.of("https://www.w3.org/2018/credentials/examples/v1","https://www.w3.org/2018/credentials/v1");
