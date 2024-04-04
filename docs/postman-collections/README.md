@@ -1,24 +1,20 @@
 
 # [eSignet](https://docs.esignet.io/overview) Collection
 
-This folder contains Postman collection with requests for creating and updating OIDC clients, performing authentication using oidc KBA flow using esignet.
+This folder contains Postman collection with requests for creating and updating OIDC clients, performing authentication using KBA flow using esignet.
 
 ## Usage
 
 One can [import](https://learning.postman.com/docs/getting-started/importing-and-exporting/importing-and-exporting-overview/ "Postman Docs") the following collections and the corresponding environment files in postman
 
-Mock Ida flow:
+KBA flow:
 
-* [Esignet Collection](./esignet-OIDC-flow-with-mock.postman_collection.json "Postman Collection")
-* [Esignet Environment](./esignet-OIDC-flow-with-mock.postman_environment.json "Environment")
-
-Real Ida Flow
-
-* [Esignet Collection](./esignet-OIDC-flow-with-real-ida.postman_collection.json "Postman Collection")
-* [Esignet Environment](./esignet-OIDC-flow-with-real-ida.postman_environment.json "Environment")
+* [DCL Collection](./esignet-with-Sunbird-RC.postman_collection.json "Postman Collection")
+* [DCL Environment](./esignet-with-Sunbird-RC.postman_environment.json "Environment")
 
 
-## Prerequisites for Real Ida Flow
+
+## Prerequisites for KBA Flow
 For the client creation in the above flow the user is expected to have the following details handy
 
 * relayingPartyId
