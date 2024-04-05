@@ -15,10 +15,8 @@ KBA flow:
 
 
 ## Prerequisites for KBA Flow
-For the client creation in the above flow the user is expected to have the following details handy
 
-* relayingPartyId
-* policyId
+For prerequisites and postman collection for a sample usecase from Sunbird RC can be found here (https://github.com/Sunbird-RC/demo-mosip-rc)
 
 ## Crypto Operations
 
@@ -26,13 +24,7 @@ This collection utilizes the [postman util lib](https://joolfe.github.io/postman
 
 * Key Pair Generation
 * Signing
-* Thumbprint Computation x5t#s256
 * Client Assertion
-
-
-## Overview
-
-Overview regarding esignet is [here](../../README.md "readme")
 
 ## Contributing
 
