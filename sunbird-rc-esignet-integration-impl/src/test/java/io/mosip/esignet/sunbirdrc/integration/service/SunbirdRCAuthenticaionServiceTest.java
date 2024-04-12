@@ -22,7 +22,6 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
-import java.lang.reflect.UndeclaredThrowableException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -107,7 +106,6 @@ public class SunbirdRCAuthenticaionServiceTest {
         Map<String,String> mockChallengMap=new HashMap<>();
         mockChallengMap.put("fullName","Zaid Siddique");
         mockChallengMap.put("dob","2000-07-26");
-      //  Mockito.when(objectMapper.readValue(Mockito.anyString(),Mockito.eq(Map.class))).thenReturn(mockChallengMap);
 
         KycAuthResult result = sunbirdRCAuthenticationService.doKycAuth(relyingPartyId, clientId, kycAuthDto);
         Assert.assertNotNull(result);
