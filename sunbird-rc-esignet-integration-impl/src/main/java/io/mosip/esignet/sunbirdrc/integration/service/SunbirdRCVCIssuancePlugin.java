@@ -304,10 +304,27 @@ public class SunbirdRCVCIssuancePlugin implements VCIssuancePlugin {
         configMap.put(credentialProp,propertyValue);
     }
 
-    private void validateAndCacheTemplate(String templateUrl, String credentialType){
+    private void validateAndCacheTemplate(String templateUrl, String credentialType) throws VCIExchangeException {
+        try{
             Template template = vEngine.getTemplate(templateUrl);
-            //Todo Validate if all the templates are valid JSON-LD documents
+            //Validate if the templates are valid JSON-LD documents
+            StringWriter writer = new StringWriter();
+            template.merge(new VelocityContext(),writer);
+            String mergedTemplate = writer.toString();
+            if (mergedTemplate == null || mergedTemplate.trim().isEmpty()) {
+                log.error("Template rendering failed or produced an empty string :{}",mergedTemplate);
+                throw new VCIExchangeException("Template rendering failed or produced an empty string.");
+            }
+            Map<String,Object> templateMap = mapper.readValue(mergedTemplate,Map.class);
+            if (!templateMap.containsKey("@context") || !templateMap.containsKey("type")) {
+                log.error("Mandatory field missing in the JSON-LD document :{}",templateMap);
+                throw new VCIExchangeException("Mandatory field missing in the JSON-LD document.");
+            }
             credentialTypeTemplates.put(credentialType, template);
+        }catch (JsonProcessingException e){
+            log.error("Failed to parse JSON-LD document", e);
+            throw new VCIExchangeException("Template is not configured Properly.");
+        }
     }
 
     private void validateContextUrl(Template template,List<String> vcRequestContextList) throws VCIExchangeException {
@@ -327,4 +344,5 @@ public class SunbirdRCVCIssuancePlugin implements VCIssuancePlugin {
             throw new VCIExchangeException(ErrorConstants.VCI_EXCHANGE_FAILED);
         }
     }
+
 }
