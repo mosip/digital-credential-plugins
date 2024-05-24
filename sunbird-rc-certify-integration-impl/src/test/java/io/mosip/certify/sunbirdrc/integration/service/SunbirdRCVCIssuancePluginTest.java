@@ -1,12 +1,12 @@
-package io.mosip.esignet.sunbirdrc.integration.service;
+package io.mosip.certify.sunbirdrc.integration.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import foundation.identity.jsonld.JsonLDObject;
-import io.mosip.esignet.api.dto.VCRequestDto;
-import io.mosip.esignet.api.dto.VCResult;
-import io.mosip.esignet.api.exception.VCIExchangeException;
-import io.mosip.esignet.api.util.ErrorConstants;
+import io.mosip.certify.api.dto.VCRequestDto;
+import io.mosip.certify.api.dto.VCResult;
+import io.mosip.certify.api.exception.VCIExchangeException;
+import io.mosip.certify.api.util.ErrorConstants;
 import org.apache.velocity.Template;
 import org.apache.velocity.app.VelocityEngine;
 import org.junit.Assert;
@@ -26,7 +26,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -279,7 +278,7 @@ public class SunbirdRCVCIssuancePluginTest {
         try{
             sunbirdRCVCIssuancePlugin.initialize();
         }catch (VCIExchangeException e){
-            Assert.assertEquals("Property mosip.esignet.vciplugin.sunbird-rc.credential-type.InsuranceCredential.template-url is not set Properly.", e.getMessage());
+            Assert.assertEquals("Property mosip.certify.vciplugin.sunbird-rc.credential-type.InsuranceCredential.template-url is not set Properly.", e.getMessage());
         }
     }
 
