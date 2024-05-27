@@ -36,11 +36,6 @@ public class LoggerAuditService implements AuditPlugin {
     private void addAuditDetailsToMDC(AuditDTO auditDTO) {
         if(auditDTO != null) {
             MDC.put("transactionId", auditDTO.getTransactionId());
-            MDC.put("clientId", auditDTO.getClientId());
-            MDC.put("relyingPartyId", auditDTO.getRelyingPartyId());
-            MDC.put("state", auditDTO.getState());
-            MDC.put("authCodeHash", auditDTO.getCodeHash());
-            MDC.put("accessTokenHash", auditDTO.getAccessTokenHash());
         }
     }
     
