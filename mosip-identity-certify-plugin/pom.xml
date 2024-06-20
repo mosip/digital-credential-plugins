@@ -157,12 +157,12 @@
             <groupId>io.mosip.esignet</groupId>
             <artifactId>esignet-integration-api</artifactId>
             <version>1.4.0</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>*</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
+           <exclusions>
+               <exclusion>
+                   <groupId>*</groupId>
+                   <artifactId>*</artifactId>
+               </exclusion>
+           </exclusions>
         </dependency>
     </dependencies>
 
