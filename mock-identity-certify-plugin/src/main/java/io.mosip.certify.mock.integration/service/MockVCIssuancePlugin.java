@@ -62,9 +62,6 @@ public class MockVCIssuancePlugin implements VCIssuancePlugin {
 	private SignatureService signatureService;
 
 	@Autowired
-	private ParsedAccessToken parsedAccessToken;
-
-	@Autowired
 	private CacheManager cacheManager;
 
 	@Autowired
@@ -96,6 +93,8 @@ public class MockVCIssuancePlugin implements VCIssuancePlugin {
 	@Value("#{${mosip.certify.mock.vciplugin.vc-credential-contexts:{'https://www.w3.org/2018/credentials/v1','https://schema.org/'}}}")
 	private List<String> vcCredentialContexts;
 
+	private static final String ACCESS_TOKEN_HASH = "accessTokenHash";
+
 	public static final String UTC_DATETIME_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
 
 	public static final String CERTIFY_SERVICE_APP_ID = "CERTIFY_SERVICE";
@@ -106,7 +105,7 @@ public class MockVCIssuancePlugin implements VCIssuancePlugin {
 		JsonLDObject vcJsonLdObject = null;
 		try {
 			VCResult<JsonLDObject> vcResult = new VCResult<>();
-			vcJsonLdObject = buildDummyJsonLDWithLDProof(holderId);
+			vcJsonLdObject = buildJsonLDWithLDProof(identityDetails.get(ACCESS_TOKEN_HASH).toString());
 			vcResult.setCredential(vcJsonLdObject);
 			vcResult.setFormat("ldp_vc");
 			return vcResult;
@@ -116,9 +115,9 @@ public class MockVCIssuancePlugin implements VCIssuancePlugin {
 		throw new VCIExchangeException();
 	}
 
-	private JsonLDObject buildDummyJsonLDWithLDProof(String holderId)
+	private JsonLDObject buildJsonLDWithLDProof(String accessTokenHash)
 			throws IOException, GeneralSecurityException, JsonLDException, URISyntaxException {
-		OIDCTransaction transaction = getUserInfoTransaction(parsedAccessToken.getAccessTokenHash());
+		OIDCTransaction transaction = getUserInfoTransaction(accessTokenHash);
 		Map<String, Object> formattedMap = null;
 		try{
 			formattedMap = getIndividualData(transaction);
