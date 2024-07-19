@@ -14,18 +14,21 @@ import id.walt.mdoc.doc.MDocBuilder
 import id.walt.mdoc.mso.DeviceKeyInfo
 import id.walt.mdoc.mso.ValidityInfo
 import io.mosip.certify.util.CertificateGenerator
-//import io.mosip.certify.util.JwkToKeyConverter
+import io.mosip.certify.util.IssuerKeyPairAndCertificate
 import io.mosip.certify.util.Keypair
+import io.mosip.certify.util.PKCS12Reader
 import kotlinx.datetime.Clock
-import org.bouncycastle.cert.X509v3CertificateBuilder
+import java.io.ByteArrayInputStream
 import java.security.KeyPair
+import java.security.cert.CertificateFactory
+import java.security.cert.X509Certificate
 import java.util.*
 
 
 class MdocMdLBuilder {
     @Throws(JsonProcessingException::class)
-    fun getEncodedMdocData(holderId: String): String {
-        val mDocBuilder = buildMockMDoc(holderId)
+    fun getEncodedMdocData(holderId: String, certificate: String): String {
+        val mDocBuilder: MDoc = buildMockMDoc(holderId, certificate)
         val mapper =
             ObjectMapper(CBORFactory())
         val cborBytes = mapper.writeValueAsBytes(mDocBuilder)
@@ -34,7 +37,16 @@ class MdocMdLBuilder {
         return Base64.getUrlEncoder().encodeToString(cborBytes)
     }
 
-    fun buildMockMDoc(holderId: String): MDoc {
+
+    private fun certificateFromPemFormat(pem: String): X509Certificate? {
+        val encoded = pem.replace("-----BEGIN CERTIFICATE-----\n", "").replace("\n-----END CERTIFICATE-----", "")
+        val decoded = Base64.getDecoder().decode(encoded)
+        val inputStream = ByteArrayInputStream(decoded)
+
+        return CertificateFactory.getInstance("X.509").generateCertificate(inputStream) as? X509Certificate
+    }
+
+    fun buildMockMDoc(holderId: String, rootCertificate: String): MDoc {
 
         val drivingPrivilegeObject = mapOf(
             "vehicle_category_code" to "A".toDE(),
@@ -53,15 +65,19 @@ class MdocMdLBuilder {
         val devicePublicKey = Keypair().generate().public
         val deviceKeyInfo = DeviceKeyInfo(DataElement.fromCBOR(OneKey(devicePublicKey, null).AsCBOR().EncodeToBytes()))
         val ISSUER_KEY_ID = "ISSUER"
-        val issuerKeyPair: KeyPair = Keypair().generate()
+        val issuerKeyPairAndCertificate: IssuerKeyPairAndCertificate = PKCS12Reader.read()
+//        val issuerKeyPair: KeyPair = Keypair().generate()
+        val issuerKeyPair: KeyPair = issuerKeyPairAndCertificate.keyPair
 //        val issuerCertificate = CertificateGenerator.issuerCertificate(issuerKeyPair)
-        val issuerCertificate = CertificateGenerator.issuerCertificate(Keypair().generate())
+        val issuerCertificate = issuerKeyPairAndCertificate.x509Certificate
         val caCertificate = CertificateGenerator.caCertificate()!!
+        //TODO: convert pem to X509 certificate instance and use it
+//        val caCertificate = certificateFromPemFormat((rootCertificate))!!
         val coseCryptoProvider = SimpleCOSECryptoProvider(
             listOf(
                 COSECryptoProviderKeyInfo(
                     ISSUER_KEY_ID,
-                    AlgorithmID.ECDSA_256,
+                    AlgorithmID.RSA_PSS_512,
                     issuerKeyPair.public,
                     issuerKeyPair.private,
                     listOf(issuerCertificate),
@@ -82,7 +98,7 @@ class MdocMdLBuilder {
             .addItemToSign("org.iso.18013.5.1", "birth_date", "2003-01-01".toDE())
             .addItemToSign("org.iso.18013.5.1", "driving_privileges", drivingPrivilegeArray.toDE())
             .addItemToSign("org.iso.18013.5.1", "id", holderId.toDE())
-            .sign(validityInfo,deviceKeyInfo,coseCryptoProvider,ISSUER_KEY_ID)
+            .sign(validityInfo, deviceKeyInfo, coseCryptoProvider, ISSUER_KEY_ID)
 
         return mdoc
     }

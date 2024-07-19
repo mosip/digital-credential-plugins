@@ -46,7 +46,7 @@ class CertificateGenerator {
                     BasicConstraints(true)
                 )
 
-                val contentSigner = JcaContentSignerBuilder("SHA256withECDSA")
+                val contentSigner = JcaContentSignerBuilder("SHA256withRSA")
                     .setProvider("BC")
                     .build(rootKeyPair.private)
 
@@ -68,7 +68,7 @@ class CertificateGenerator {
                 SubjectPublicKeyInfo.getInstance(issuerKeyPair.public.encoded)
             ).addExtension(Extension.basicConstraints, true, BasicConstraints(false))
                 .addExtension(Extension.keyUsage, true, KeyUsage(KeyUsage.digitalSignature))
-                .build(JcaContentSignerBuilder("SHA256withECDSA").setProvider("BC").build(rootKeyPair.private)).let {
+                .build(JcaContentSignerBuilder("SHA256withRSA").setProvider("BC").build(rootKeyPair.private)).let {
                     JcaX509CertificateConverter().setProvider("BC").getCertificate(it)
                 }
             println("issuer certificate generated")
