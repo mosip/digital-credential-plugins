@@ -27,8 +27,8 @@ import java.util.*
 
 class MdocMdLBuilder {
     @Throws(JsonProcessingException::class)
-    fun getEncodedMdocData(holderId: String, certificate: String): String {
-        val mDocBuilder: MDoc = buildMockMDoc(holderId, certificate)
+    fun getEncodedMdocData(holderId: String, certificate: String, data: Map<String, Any>): String {
+        val mDocBuilder: MDoc = buildMockMDoc(holderId, certificate, data)
         val mapper =
             ObjectMapper(CBORFactory())
         val cborBytes = mapper.writeValueAsBytes(mDocBuilder)
@@ -46,7 +46,7 @@ class MdocMdLBuilder {
         return CertificateFactory.getInstance("X.509").generateCertificate(inputStream) as? X509Certificate
     }
 
-    fun buildMockMDoc(holderId: String, rootCertificate: String): MDoc {
+    fun buildMockMDoc(holderId: String, rootCertificate: String, data: Map<String, Any>): MDoc {
 
         val drivingPrivilegeObject = mapOf(
             "vehicle_category_code" to "A".toDE(),
@@ -86,20 +86,26 @@ class MdocMdLBuilder {
             )
         )
 
-        val mdoc = MDocBuilder("org.iso.18013.5.1.mDL")
-            .addItemToSign("org.iso.18013.5.1", "family_name", "Doe".toDE())
-            .addItemToSign("org.iso.18013.5.1", "given_name", "John".toDE())
-            .addItemToSign("org.iso.18013.5.1", "issuing_country", "US".toDE())
-            .addItemToSign("org.iso.18013.5.1", "document_number", "123456789".toDE())
-            .addItemToSign("org.iso.18013.5.1", "issuing_authority", "XXX".toDE())
+        val mDocBuilder: MDocBuilder = MDocBuilder("org.iso.18013.5.1.mDL")
+        /*.addItemToSign("org.iso.18013.5.1", "family_name", "Doe".toDE())
+        .addItemToSign("org.iso.18013.5.1", "given_name", "John".toDE())
+        .addItemToSign("org.iso.18013.5.1", "issuing_country", "US".toDE())
+        .addItemToSign("org.iso.18013.5.1", "document_number", "123456789".toDE())
+        .addItemToSign("org.iso.18013.5.1", "issuing_authority", "XXX".toDE())
 
-            .addItemToSign("org.iso.18013.5.1", "issue_date", "2023-01-01".toDE())
-            .addItemToSign("org.iso.18013.5.1", "expiry_date", "2043-01-01".toDE())
-            .addItemToSign("org.iso.18013.5.1", "birth_date", "2003-01-01".toDE())
-            .addItemToSign("org.iso.18013.5.1", "driving_privileges", drivingPrivilegeArray.toDE())
-            .addItemToSign("org.iso.18013.5.1", "id", holderId.toDE())
-            .sign(validityInfo, deviceKeyInfo, coseCryptoProvider, ISSUER_KEY_ID)
+        .addItemToSign("org.iso.18013.5.1", "issue_date", "2023-01-01".toDE())
+        .addItemToSign("org.iso.18013.5.1", "expiry_date", "2043-01-01".toDE())
+        .addItemToSign("org.iso.18013.5.1", "birth_date", "2003-01-01".toDE())
+        .addItemToSign("org.iso.18013.5.1", "driving_privileges", drivingPrivilegeArray.toDE())
+        .addItemToSign("org.iso.18013.5.1", "id", holderId.toDE())*/
+        data.keys.forEach { dataKey ->
+            run {
+                mDocBuilder.addItemToSign("org.iso.18013.5.1",dataKey,data.get(dataKey).toString().toDE())
+            }
+        }
 
-        return mdoc
+        val mDoc: MDoc = mDocBuilder.sign(validityInfo, deviceKeyInfo, coseCryptoProvider, ISSUER_KEY_ID)
+
+        return mDoc
     }
 }
