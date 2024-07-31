@@ -1,9 +1,9 @@
 package io.mosip.certify.mock.integration.service;
 
+import foundation.identity.jsonld.JsonLDObject;
 import io.mosip.certify.api.dto.VCRequestDto;
 import io.mosip.certify.api.dto.VCResult;
 import io.mosip.certify.api.exception.VCIExchangeException;
-import io.mosip.certify.core.dto.ParsedAccessToken;
 import io.mosip.esignet.core.dto.OIDCTransaction;
 import io.mosip.kernel.signature.dto.JWTSignatureResponseDto;
 import io.mosip.kernel.signature.service.SignatureService;
@@ -21,6 +21,7 @@ import org.springframework.cache.support.NoOpCache;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -63,7 +64,7 @@ public class MockVCIssuancePluginTest {
 
         vcRequestDto.setFormat("ldp_vc");
         vcRequestDto.setContext(Arrays.asList("context1","context2"));
-        vcRequestDto.setType(Arrays.asList("VerifiableCredential"));
+        vcRequestDto.setType(Arrays.asList("VerifiableCredential", "MockVerifiableCredential"));
         vcRequestDto.setCredentialSubject(Map.of("subject1","subject1","subject2","subject2"));
 
         Mockito.when(cacheManager.getCache(Mockito.anyString())).thenReturn(cache);
@@ -87,5 +88,18 @@ public class MockVCIssuancePluginTest {
         }catch (Exception e) {
             Assert.assertEquals("vci_exchange_failed",e.getMessage());
         }
+    }
+
+    @Test
+    public void getVerifiableCredentialWithLinkedDataProof_withValidCredentialType() throws VCIExchangeException {
+        JWTSignatureResponseDto jwtSignatureResponseDto = new JWTSignatureResponseDto();
+        jwtSignatureResponseDto.setJwtSignedData("test-jwt");
+        Mockito.when(signatureService.jwtSign(any())).thenReturn(jwtSignatureResponseDto);
+        VCResult vcResult = mockVCIssuancePlugin.getVerifiableCredentialWithLinkedDataProof(vcRequestDto,"holderId",Map.of("accessTokenHash","ACCESS_TOKEN_HASH","client_id","CLIENT_ID"));
+        Assert.assertNotNull(vcResult.getCredential());
+        JsonLDObject credential = (JsonLDObject) vcResult.getCredential();
+        Assert.assertNotNull(credential.getTypes());
+        List<String> expectedType = Arrays.asList("VerifiableCredential", "MockVerifiableCredential");
+        Assert.assertEquals(expectedType, credential.getTypes());
     }
 }

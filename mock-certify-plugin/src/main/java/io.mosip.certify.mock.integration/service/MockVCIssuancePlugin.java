@@ -127,7 +127,7 @@ public class MockVCIssuancePlugin implements VCIssuancePlugin {
 
 		Map<String, Object> verCredJsonObject = new HashMap<>();
 		verCredJsonObject.put("@context", vcCredentialContexts);
-		verCredJsonObject.put("type", Arrays.asList("VerifiableCredential", "MOSIPVerifiableCredential"));
+		verCredJsonObject.put("type", Arrays.asList("VerifiableCredential", "MockVerifiableCredential"));
 		verCredJsonObject.put("id", "urn:uuid:3978344f-8596-4c3a-a978-8fcaba3903c5");
 		verCredJsonObject.put("issuer", "did:example:123456789");
 		verCredJsonObject.put("issuanceDate", getUTCDateTime());
