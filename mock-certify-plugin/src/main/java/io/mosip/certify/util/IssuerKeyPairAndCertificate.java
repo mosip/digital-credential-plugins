@@ -4,19 +4,25 @@ import java.security.KeyPair;
 import java.security.cert.X509Certificate;
 
 public class IssuerKeyPairAndCertificate {
-    private final KeyPair keyPair;
-    private final X509Certificate x509Certificate;
+    private final KeyPair issuerKeypair;
+    private final X509Certificate issuerCertificate;
+    private final X509Certificate caCertificate;
 
-    public IssuerKeyPairAndCertificate(KeyPair keyPair, X509Certificate x509Certificate) {
-        this.keyPair = keyPair;
-        this.x509Certificate = x509Certificate;
+    public IssuerKeyPairAndCertificate(KeyPair issuerKeypair, X509Certificate issuerCertificate, X509Certificate caCertificate) {
+        this.issuerKeypair = issuerKeypair;
+        this.caCertificate = caCertificate;
+        this.issuerCertificate = issuerCertificate;
     }
 
-    public KeyPair getKeyPair() {
-        return keyPair;
+    public KeyPair getIssuerKeypair() {
+        return issuerKeypair;
     }
 
-    public X509Certificate getX509Certificate() {
-        return x509Certificate;
+    public X509Certificate getIssuerCertificate() {
+        return issuerCertificate;
+    }
+
+    public X509Certificate getCaCertificate() {
+        return caCertificate;
     }
 }
