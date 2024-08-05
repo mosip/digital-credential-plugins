@@ -14,7 +14,7 @@ import kotlin.Long
 import kotlin.String
 
 
-class CBORConverter() {
+public class CBORConverter() {
 
     companion object {
         fun hexToString(hex: String): String {
