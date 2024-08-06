@@ -106,6 +106,18 @@ public class MockVCIssuancePlugin implements VCIssuancePlugin {
 	@Value("#{${mosip.certify.mock.vciplugin.vc-credential-contexts:{'https://www.w3.org/2018/credentials/v1','https://schema.org/'}}}")
 	private List<String> vcCredentialContexts;
 
+	@Value("${mosip.certify.mock.vciplugin.p12.filename}")
+	private String p12FileName = null;
+
+	@Value("${mosip.certify.mock.vciplugin.p12.password}")
+	private String password = null;
+
+	@Value("${mosip.certify.mock.vciplugin.ca.alias}")
+	private String caAlias = null;
+
+	@Value("${mosip.certify.mock.vciplugin.issuer.alias}")
+	private String issuerAlias = null;
+
 	private static final String ACCESS_TOKEN_HASH = "accessTokenHash";
 
 	public static final String UTC_DATETIME_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
@@ -179,12 +191,10 @@ public class MockVCIssuancePlugin implements VCIssuancePlugin {
 
 	private Map<String, Object> getIndividualData(OIDCTransaction transaction){
 		String individualId = getIndividualId(transaction);
-		System.out.println("individualId from transaction is: " + individualId);
 		if (individualId!=null){
 			Map<String, Object> res = new RestTemplate().getForObject(
 					getIdentityUrl+"/"+individualId,
 					HashMap.class);
-			System.out.println("result of API: get mock data of individualID "+res);
 			res = (Map<String, Object>)res.get("response");
 			Map<String, Object> ret = new HashMap<>();
 			ret.put("vcVer", "VC-V1");
@@ -260,8 +270,6 @@ public class MockVCIssuancePlugin implements VCIssuancePlugin {
 	public VCResult<String> getVerifiableCredential(VCRequestDto vcRequestDto, String holderId,
 													Map<String, Object> identityDetails) throws VCIExchangeException {
 		String accessTokenHash = identityDetails.get(ACCESS_TOKEN_HASH).toString();
-		System.out.println("AccessToken hash in getVerifiableCredential: " + accessTokenHash);
-		//TODO: Populate data based on the claims in the Credential request
         Map<String, Object> data = new HashMap<>();
         String individualId;
         try {
@@ -284,35 +292,24 @@ public class MockVCIssuancePlugin implements VCIssuancePlugin {
 			put("expiry_date","2043-01-01");
 		}});
 
-		System.out.println("----");
 		if(vcRequestDto.getFormat().equals("mso_mdoc")){
-			System.out.println("getVerifiableCredential: inside msomdoc");
 			VCResult<String> vcResult = new VCResult<>();
 			String mdocVc = null;
 			try {
-				 mdocVc = new io.mosip.certify.mock.integration.mocks.MdocGenerator().generate(data,holderId);
+				 mdocVc = new io.mosip.certify.mock.integration.mocks.MdocGenerator().generate(data,holderId, p12FileName,password,caAlias,issuerAlias);
 			} catch (Exception e) {
-				log.error("Exception on mdoc creation "+ mdocVc);
+                log.error("Exception on mdoc creation", e);
+				throw new VCIExchangeException(ErrorConstants.VCI_EXCHANGE_FAILED);
 			}
 			vcResult.setCredential(mdocVc);
 			vcResult.setFormat("mso_mdoc");
 			return  vcResult;
 		}
-		System.out.println("not implemented the format "+vcRequestDto);
+        log.error("not implemented the format {}", vcRequestDto);
 		throw new VCIExchangeException(ErrorConstants.NOT_IMPLEMENTED);
 	}
 
 	public OIDCTransaction getUserInfoTransaction(String accessTokenHash) {
-		Cache cache = cacheManager.getCache(USERINFO_CACHE);
-		System.out.println("testing");
-		System.out.println("cache name "+cache.getName());
-		System.out.println("Getting cache for accessTokenHash "+accessTokenHash);
-		System.out.println("cache native cache "+cache.getNativeCache().toString());
-		System.out.println("cache values "+cache.toString());
-        System.out.println("before storing in var "+ cache.get(accessTokenHash));
-		OIDCTransaction oidcTransaction = cache.get(accessTokenHash, OIDCTransaction.class);
-        System.out.println("got oidcTransaction from cache successfully");
-		System.out.println("oidcTransaction from cahce is "+oidcTransaction.toString());
-		return oidcTransaction;
+        return cacheManager.getCache(USERINFO_CACHE).get(accessTokenHash, OIDCTransaction.class);
 	}
 }

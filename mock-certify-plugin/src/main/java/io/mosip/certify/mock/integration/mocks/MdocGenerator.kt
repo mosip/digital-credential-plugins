@@ -8,41 +8,51 @@ import com.android.identity.internal.Util
 import com.android.identity.mdoc.mso.MobileSecurityObjectGenerator
 import com.android.identity.mdoc.util.MdocUtil
 import com.android.identity.util.Timestamp
-import io.mosip.certify.util.CBORConverter
-import io.mosip.certify.util.IssuerKeyPairAndCertificate
-import io.mosip.certify.util.JwkToKeyConverter
-import io.mosip.certify.util.PKCS12Reader
-import kotlinx.serialization.Serializable
+import io.mosip.certify.util.*
 import java.io.ByteArrayOutputStream
+import io.mosip.certify.util.IssuerKeyPairAndCertificate
 import java.util.*
+
 
 class MdocGenerator {
     companion object {
-        val NAMESPACE: String = "org.iso.18013.5.1"
-        val DOCTYPE: String = "$NAMESPACE.mDL"
-        val ALGORITHM = "SHA-256"
-        val keyAlias = "issuer"
+        const val NAMESPACE: String = "org.iso.18013.5.1"
+        const val DOCTYPE: String = "$NAMESPACE.mDL"
+        const val DIGEST_ALGORITHM = "SHA-256"
+        const val ECDSA_ALGORITHM = "SHA256withECDSA"
+        const val SEED = 42L
     }
 
-    fun generate(data: Map<String, Any>,holderId:String): String? {
-        println("holderId = "+holderId)
-        val issuerKeyPairAndCertificate: IssuerKeyPairAndCertificate = PKCS12Reader.read()
+    fun generate(
+        data: MutableMap<String, out Any>,
+        holderId: String,
+        p12FileName: String,
+        password: String,
+        caAlias: String,
+        issuerAlias: String
+    ): String? {
+        val issuerKeyPairAndCertificate: IssuerKeyPairAndCertificate? = readKeypairAndCertificates(
+            p12FileName, password, listOf(caAlias,issuerAlias)
+        )
+        if(issuerKeyPairAndCertificate == null) {
+            throw RuntimeException("Unable to load Crypto details")
+        }
         val devicePublicKey = JwkToKeyConverter().convertToPublicKey(holderId.replace("did:jwk:", ""))
-        val issuerKeypair = issuerKeyPairAndCertificate.issuerKeypair
+        val issuerKeypair = issuerKeyPairAndCertificate.issuerKeypair()
 
         val nameSpacedDataBuilder: NameSpacedData.Builder = NameSpacedData.Builder()
         data.keys.forEach { key ->
-            nameSpacedDataBuilder.putEntryString(NAMESPACE, key, data.get(key).toString())
+            nameSpacedDataBuilder.putEntryString(NAMESPACE, key, data[key].toString())
         }
         val nameSpacedData: NameSpacedData =
             nameSpacedDataBuilder
                 .build()
         val generatedIssuerNameSpaces: MutableMap<String, MutableList<ByteArray>> =
-            MdocUtil.generateIssuerNameSpaces(nameSpacedData, Random(42), 16)
+            MdocUtil.generateIssuerNameSpaces(nameSpacedData, Random(SEED), 16)
         val calculateDigestsForNameSpace =
-            MdocUtil.calculateDigestsForNameSpace(NAMESPACE, generatedIssuerNameSpaces, ALGORITHM)
+            MdocUtil.calculateDigestsForNameSpace(NAMESPACE, generatedIssuerNameSpaces, DIGEST_ALGORITHM)
 
-        val mobileSecurityObjectGenerator = MobileSecurityObjectGenerator(ALGORITHM, NAMESPACE, devicePublicKey)
+        val mobileSecurityObjectGenerator = MobileSecurityObjectGenerator(DIGEST_ALGORITHM, NAMESPACE, devicePublicKey)
         mobileSecurityObjectGenerator.addDigestIdsForNamespace(NAMESPACE, calculateDigestsForNameSpace)
         val distantFuture: Long = kotlinx.datetime.Instant.Companion.DISTANT_FUTURE.toEpochMilliseconds()
         mobileSecurityObjectGenerator.setValidityInfo(
@@ -52,35 +62,41 @@ class MdocGenerator {
             Timestamp.ofEpochMilli(distantFuture),
         )
         val mso: ByteArray = mobileSecurityObjectGenerator.generate()
-        println("mso ${mso}")
-        println("decoded ${Util.cborDecode(mso)}")
 
         val coseSign1Sign: DataItem = Util.coseSign1Sign(
             issuerKeypair.private,
-            "SHA256withECDSA",
+            ECDSA_ALGORITHM,
             mso.copyOf(),
             null,
-            listOf(issuerKeyPairAndCertificate.caCertificate, issuerKeyPairAndCertificate.issuerCertificate)
+            listOf(issuerKeyPairAndCertificate.caCertificate(), issuerKeyPairAndCertificate.issuerCertificate())
         )
-        val cborEncoded = Util.cborEncode(coseSign1Sign)
-        println("coseS " + Base64.getEncoder().encode(cborEncoded))
-        println("coseS " + Util.cborDecode(cborEncoded))
 
         return construct(generatedIssuerNameSpaces, coseSign1Sign)
+    }
+
+    @Throws(Exception::class)
+    private fun readKeypairAndCertificates(p12FileName: String, p12Password: String, aliases: List<String?>): IssuerKeyPairAndCertificate? {
+        val pkcS12Reader = PKCS12Reader()
+        val caDetails: KeyPairAndCertificate? = pkcS12Reader.extract(p12FileName, p12Password, aliases[0])!!
+        val issuerDetails: KeyPairAndCertificate? = pkcS12Reader.extract(p12FileName, p12Password, aliases[1])!!
+        if (issuerDetails != null && caDetails != null) {
+            return IssuerKeyPairAndCertificate(
+                issuerDetails.keyPair,
+                issuerDetails.certificate,
+                caDetails.certificate
+            )
+        }
+        return null
     }
 
     private fun construct(nameSpaces: MutableMap<String, MutableList<ByteArray>>, issuerAuth: DataItem): String? {
         val mDoc = MDoc(DOCTYPE, IssuerSigned(nameSpaces, issuerAuth))
         val cbor = mDoc.toCBOR()
-        println("data in cbor base64 is " + Base64.getEncoder().encodeToString(cbor))
         return Base64.getEncoder().encodeToString(cbor)
     }
 }
 
-@Serializable
 data class MDoc(val docType: String, val issuerSigned: IssuerSigned) {
-
-
     fun toCBOR(): ByteArray {
         val byteArrayOutputStream = ByteArrayOutputStream()
         CborEncoder(byteArrayOutputStream).encode(
@@ -95,7 +111,6 @@ data class MDoc(val docType: String, val issuerSigned: IssuerSigned) {
     }
 }
 
-@Serializable
 data class IssuerSigned(val nameSpaces: MutableMap<String, MutableList<ByteArray>>, val issuerAuth: DataItem) {
     fun toMap(): Map<String, Any> {
         return buildMap {
@@ -103,31 +118,4 @@ data class IssuerSigned(val nameSpaces: MutableMap<String, MutableList<ByteArray
             put("issuerAuth", issuerAuth)
         }
     }
-
 }
-
-private fun NameSpacedData.toValidString(): MutableMap<String, Any> {
-    val namespacesNames = this.nameSpaceNames
-    println("toString: $namespacesNames")
-    val nameSpacesMap: MutableMap<String, Any> = mutableMapOf()
-    namespacesNames.forEach { namespace ->
-        val dataElementNames: MutableList<String> = this.getDataElementNames(namespace)
-        println("dataElementNames: $dataElementNames")
-        val nameSpaceElements = ArrayList<Any>()
-        dataElementNames.forEachIndexed { index, name ->
-            val dataElementValue = this.getDataElement(namespace, name).decodeToString()
-            nameSpaceElements.add(
-                mutableMapOf(
-                    "digestId" to index,
-                    "elementIdentifier" to name,
-                    "elementValue" to dataElementValue,
-                    "random" to "randommm"
-                )
-            )
-        }
-        nameSpacesMap.put(namespace, nameSpaceElements)
-    }
-
-    return nameSpacesMap;
-}
-
