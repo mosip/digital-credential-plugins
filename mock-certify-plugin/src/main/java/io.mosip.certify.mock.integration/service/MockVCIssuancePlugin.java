@@ -19,23 +19,17 @@ import java.util.*;
 
 import javax.crypto.Cipher;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import io.mosip.certify.api.dto.VCRequestDto;
 import io.mosip.certify.api.dto.VCResult;
 import io.mosip.certify.api.exception.VCIExchangeException;
 import io.mosip.certify.api.spi.VCIssuancePlugin;
 import io.mosip.certify.api.util.ErrorConstants;
-import io.mosip.certify.core.dto.ParsedAccessToken;
 import io.mosip.certify.core.exception.CertifyException;
 import io.mosip.esignet.core.dto.OIDCTransaction;
-import io.mosip.kernel.keygenerator.bouncycastle.KeyGenerator;
-import io.mosip.kernel.keymanagerservice.dto.KeyPairGenerateResponseDto;
 import io.mosip.kernel.keymanagerservice.service.KeymanagerService;
-import javassist.bytecode.ByteArray;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -68,11 +62,7 @@ public class MockVCIssuancePlugin implements VCIssuancePlugin {
 	private SignatureService signatureService;
 
 	@Autowired
-	KeyGenerator keyGenerator;
-
-	@Autowired
 	private CacheManager cacheManager;
-
 
 	@Autowired
 	private KeyStore keyStore;
@@ -218,26 +208,17 @@ public class MockVCIssuancePlugin implements VCIssuancePlugin {
 	}
 
 	protected String getIndividualId(OIDCTransaction transaction) {
-		System.out.println("transaction is: " + transaction);
-		if(!storeIndividualId){
-			System.out.println("returning null for getting indivisual id as its not storeIndividualId");
+		if(!storeIndividualId)
 			return null;
-		}
 		return secureIndividualId ? decryptIndividualId(transaction.getIndividualId()) : transaction.getIndividualId();
 	}
 
 	private String decryptIndividualId(String encryptedIndividualId) {
-		System.out.println("decrypting indivisualID from encryptedIndividualId");
 		try {
 			Cipher cipher = Cipher.getInstance(aesECBTransformation);
-			System.out.println("cipher created");
 			byte[] decodedBytes = Base64.getUrlDecoder().decode(encryptedIndividualId);
-			System.out.println("bytes decoded");
 			cipher.init(Cipher.DECRYPT_MODE, getSecretKeyFromHSM());
-			System.out.println("cipher initialized");
-			String string = new String(cipher.doFinal(decodedBytes, 0, decodedBytes.length));
-			System.out.println("string decrypted");
-			return string;
+            return new String(cipher.doFinal(decodedBytes, 0, decodedBytes.length));
 		} catch(Exception e) {
 			log.error("Error Cipher Operations of provided secret data.", e);
 			throw new CertifyException(AES_CIPHER_FAILED);

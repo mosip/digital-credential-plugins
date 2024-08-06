@@ -71,7 +71,6 @@ public class MockVCIssuancePluginTest {
     }
 
     @Test
-    @Ignore
     public void getVerifiableCredentialWithLinkedDataProof_withValidDetails_thenPass() throws VCIExchangeException {
         JWTSignatureResponseDto jwtSignatureResponseDto = new JWTSignatureResponseDto();
         jwtSignatureResponseDto.setJwtSignedData("test-jwt");
