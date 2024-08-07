@@ -26,7 +26,6 @@ import io.mosip.certify.api.spi.VCIssuancePlugin;
 import io.mosip.certify.api.util.ErrorConstants;
 import io.mosip.certify.core.exception.CertifyException;
 import io.mosip.esignet.core.dto.OIDCTransaction;
-import io.mosip.kernel.keymanagerservice.service.KeymanagerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -69,9 +68,6 @@ public class MockVCIssuancePlugin implements VCIssuancePlugin {
 
 	@Autowired
 	private KeymanagerDBHelper dbHelper;
-
-	@Autowired
-	private KeymanagerService keymanagerService;
 
 	private ConfigurableDocumentLoader confDocumentLoader = null;
 
@@ -252,11 +248,12 @@ public class MockVCIssuancePlugin implements VCIssuancePlugin {
 													Map<String, Object> identityDetails) throws VCIExchangeException {
 		String accessTokenHash = identityDetails.get(ACCESS_TOKEN_HASH).toString();
         Map<String, Object> data = new HashMap<>();
-        String individualId;
+        String documentNumber;
         try {
-			individualId = getIndividualId(getUserInfoTransaction(accessTokenHash));
+			documentNumber = getIndividualId(getUserInfoTransaction(accessTokenHash));
 		} catch (Exception e) {
-			individualId = "123489";
+			log.error("Error getting documentNumber", e);
+			throw new VCIExchangeException(ErrorConstants.VCI_EXCHANGE_FAILED);
 		}
 
         log.info("Setting up the data for mDoc");
@@ -266,7 +263,7 @@ public class MockVCIssuancePlugin implements VCIssuancePlugin {
 		data.put("given_name","Joseph");
 		data.put("birth_date", "1994-11-06");
 		data.put("issuing_country", "Island");
-		data.put("document_number",individualId);
+		data.put("document_number",documentNumber);
 		data.put("driving_privileges",new HashMap<>(){{
 			put("vehicle_category_code","A");
 			put("issue_date","2023-01-01");
