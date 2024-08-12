@@ -92,7 +92,7 @@ class MdocGenerator {
     private fun construct(nameSpaces: MutableMap<String, MutableList<ByteArray>>, issuerAuth: DataItem): String? {
         val mDoc = MDoc(DOCTYPE, IssuerSigned(nameSpaces, issuerAuth))
         val cbor = mDoc.toCBOR()
-        return Base64.getEncoder().encodeToString(cbor)
+        return Base64.getUrlEncoder().encodeToString(cbor)
     }
 }
 
