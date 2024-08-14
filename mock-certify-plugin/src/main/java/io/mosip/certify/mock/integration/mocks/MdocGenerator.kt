@@ -54,12 +54,12 @@ class MdocGenerator {
 
         val mobileSecurityObjectGenerator = MobileSecurityObjectGenerator(DIGEST_ALGORITHM, NAMESPACE, devicePublicKey)
         mobileSecurityObjectGenerator.addDigestIdsForNamespace(NAMESPACE, calculateDigestsForNameSpace)
-        val distantFuture: Long = kotlinx.datetime.Instant.Companion.DISTANT_FUTURE.toEpochMilliseconds()
+        val expirationTime: Long = kotlinx.datetime.Instant.Companion.DISTANT_FUTURE.toEpochMilliseconds()
         mobileSecurityObjectGenerator.setValidityInfo(
             Timestamp.now(),
             Timestamp.now(),
-            Timestamp.ofEpochMilli(distantFuture),
-            Timestamp.ofEpochMilli(distantFuture),
+            Timestamp.ofEpochMilli(expirationTime),
+            null
         )
         val mso: ByteArray = mobileSecurityObjectGenerator.generate()
 
