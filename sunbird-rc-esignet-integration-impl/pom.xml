@@ -43,7 +43,7 @@
 		<maven-surefire-plugin.version>2.22.0</maven-surefire-plugin.version>
 		<maven-gpg-plugin.version>1.5</maven-gpg-plugin.version>
 		<maven-source-plugin>2.2.1</maven-source-plugin>
-		<nexus-staging-maven-plugin>1.6.14</nexus-staging-maven-plugin>
+		<nexus-staging-maven-plugin>1.6.7</nexus-staging-maven-plugin>
 		<git-commit-id-plugin.version>3.0.1</git-commit-id-plugin.version>
 		<maven.jacoco.version>0.8.5</maven.jacoco.version>
 		<maven-javadoc-plugin.version>3.3.1</maven-javadoc-plugin.version>
