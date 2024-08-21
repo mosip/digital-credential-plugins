@@ -26,13 +26,11 @@ class MdocGenerator {
     fun generate(
         data: MutableMap<String, out Any>,
         holderId: String,
-        p12FileName: String,
-        password: String,
-        caAlias: String,
-        issuerAlias: String
+        caKeyAndCertificate: String,
+        issuerKeyAndCertificate: String
     ): String? {
         val issuerKeyPairAndCertificate: IssuerKeyPairAndCertificate? = readKeypairAndCertificates(
-            p12FileName, password, listOf(caAlias,issuerAlias)
+            caKeyAndCertificate,issuerKeyAndCertificate
         )
         if(issuerKeyPairAndCertificate == null) {
             throw RuntimeException("Unable to load Crypto details")
@@ -75,10 +73,10 @@ class MdocGenerator {
     }
 
     @Throws(Exception::class)
-    private fun readKeypairAndCertificates(p12FileName: String, p12Password: String, aliases: List<String?>): IssuerKeyPairAndCertificate? {
+    private fun readKeypairAndCertificates(caKeyAndCertificate: String,issuerKeyAndCertificate: String): IssuerKeyPairAndCertificate? {
         val pkcS12Reader = PKCS12Reader()
-        val caDetails: KeyPairAndCertificate? = pkcS12Reader.extract(p12FileName, p12Password, aliases[0])!!
-        val issuerDetails: KeyPairAndCertificate? = pkcS12Reader.extract(p12FileName, p12Password, aliases[1])!!
+        val caDetails: KeyPairAndCertificate = pkcS12Reader.extract(caKeyAndCertificate)
+        val issuerDetails: KeyPairAndCertificate = pkcS12Reader.extract(issuerKeyAndCertificate)
         if (issuerDetails != null && caDetails != null) {
             return IssuerKeyPairAndCertificate(
                 issuerDetails.keyPair,

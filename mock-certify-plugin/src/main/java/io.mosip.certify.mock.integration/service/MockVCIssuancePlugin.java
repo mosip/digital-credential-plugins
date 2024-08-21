@@ -92,19 +92,13 @@ public class MockVCIssuancePlugin implements VCIssuancePlugin {
 	@Value("#{${mosip.certify.mock.vciplugin.vc-credential-contexts:{'https://www.w3.org/2018/credentials/v1','https://schema.org/'}}}")
 	private List<String> vcCredentialContexts;
 
-	@Value("${mosip.certify.mock.vciplugin.p12.filename}")
-	private String p12FileName = null;
+    @Value("${mosip.certify.mock.vciplugin.issuer.key-cert:empty}")
+	private String issuerKeyAndCertificate = null;
 
-	@Value("${mosip.certify.mock.vciplugin.p12.password}")
-	private String password = null;
+	@Value("${mosip.certify.mock.vciplugin.ca.key-cert:empty}")
+	private String caKeyAndCertificate = null;
 
-	@Value("${mosip.certify.mock.vciplugin.ca.alias}")
-	private String caAlias = null;
-
-	@Value("${mosip.certify.mock.vciplugin.issuer.alias}")
-	private String issuerAlias = null;
-
-	private static final String ACCESS_TOKEN_HASH = "accessTokenHash";
+    private static final String ACCESS_TOKEN_HASH = "accessTokenHash";
 
 	public static final String UTC_DATETIME_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
 
@@ -274,7 +268,7 @@ public class MockVCIssuancePlugin implements VCIssuancePlugin {
 			VCResult<String> vcResult = new VCResult<>();
 			String mdocVc = null;
 			try {
-				 mdocVc = new io.mosip.certify.mock.integration.mocks.MdocGenerator().generate(data,holderId, p12FileName,password,caAlias,issuerAlias);
+				 mdocVc = new io.mosip.certify.mock.integration.mocks.MdocGenerator().generate(data,holderId, caKeyAndCertificate,issuerKeyAndCertificate);
 			} catch (Exception e) {
                 log.error("Exception on mdoc creation", e);
 				throw new VCIExchangeException(ErrorConstants.VCI_EXCHANGE_FAILED);

@@ -1,40 +1,48 @@
 package io.mosip.certify.util;
 
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URISyntaxException;
+import lombok.extern.slf4j.Slf4j;
+
+import java.io.ByteArrayInputStream;
 import java.security.*;
-import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.util.Base64;
 
+@Slf4j
 public class PKCS12Reader {
-    public KeyPairAndCertificate extract(String p12FileName, String password, String alias) throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException, UnrecoverableKeyException, URISyntaxException {
-        KeyStore keyStore = loadKeyStore(p12FileName, password.toCharArray());
-        Key key = keyStore.getKey(alias, password.toCharArray());
-        if (key instanceof PrivateKey privateKey) {
-            Certificate cert = keyStore.getCertificate(alias);
-            if (cert instanceof X509Certificate x509Certificate) {
-                KeyPair keyPair = new KeyPair(x509Certificate.getPublicKey(), privateKey);
-
-                return new KeyPairAndCertificate(keyPair, x509Certificate);
-            }
+    public KeyPairAndCertificate extract(String keyCert) {
+        String[] splitKeyCert = keyCert.split("\\|\\|");
+        try {
+            X509Certificate certificate = convertStringToX509Certificate((splitKeyCert[1]));
+            return (new KeyPairAndCertificate(getKeyPair(splitKeyCert[0], certificate), certificate));
+        } catch (Exception e) {
+            log.error("Failed to extract key certificate", e);
         }
+
         return null;
     }
 
-    private KeyStore loadKeyStore(String p12FileName, char[] password) {
-        try (InputStream keyStoreStream = PKCS12Reader.class.getClassLoader().getResourceAsStream(p12FileName)) {
-            if (keyStoreStream == null) {
-                throw new IllegalStateException("File not found");
-            }
-            KeyStore keyStore = KeyStore.getInstance("PKCS12");
-            keyStore.load(keyStoreStream, password);
-            return keyStore;
-        } catch (Exception e) {
-            throw new RuntimeException("Error loading p12 file", e);
-        }
+    private X509Certificate convertStringToX509Certificate(String certString) throws CertificateException {
+        byte[] certBytes = Base64.getDecoder().decode(certString);
+
+        CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
+        return (X509Certificate) certificateFactory.generateCertificate(new ByteArrayInputStream(certBytes));
+    }
+
+    private KeyPair getKeyPair(String base64PrivateKey, X509Certificate certificate) throws NoSuchAlgorithmException, InvalidKeySpecException {
+        byte[] privateKeyBytes = Base64.getDecoder().decode(base64PrivateKey);
+
+        PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(privateKeyBytes);
+        KeyFactory keyFactory = KeyFactory.getInstance("EC");
+        PrivateKey privateKey = keyFactory.generatePrivate(keySpec);
+
+        PublicKey publicKey = certificate.getPublicKey();
+
+        return new KeyPair(publicKey, privateKey);
     }
 }
 
