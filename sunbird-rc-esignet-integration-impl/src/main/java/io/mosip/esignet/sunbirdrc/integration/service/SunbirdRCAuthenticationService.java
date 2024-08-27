@@ -129,6 +129,16 @@ public class SunbirdRCAuthenticationService implements Authenticator {
         return new ArrayList<>();
     }
 
+    @Override
+    public KycAuthResult doKycAuth(String relyingPartyId, String clientId, boolean claimsMetadataRequired, KycAuthDto kycAuthDto) throws KycAuthException {
+        return this.doKycAuth(relyingPartyId, clientId, kycAuthDto);
+    }
+
+    @Override
+    public KycExchangeResult doVerifiedKycExchange(String relyingPartyId, String clientId, VerifiedKycExchangeDto kycExchangeDto) throws KycExchangeException {
+         throw new KycExchangeException(ErrorConstants.NOT_IMPLEMENTED);
+    }
+
     private KycAuthResult validateKnowledgeBasedAuth(String individualId, AuthChallenge authChallenge) throws KycAuthException {
 
         KycAuthResult  kycAuthResult= new KycAuthResult();
