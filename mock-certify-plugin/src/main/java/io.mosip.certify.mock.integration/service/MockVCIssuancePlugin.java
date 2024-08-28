@@ -24,7 +24,6 @@ import io.mosip.certify.api.dto.VCResult;
 import io.mosip.certify.api.exception.VCIExchangeException;
 import io.mosip.certify.api.spi.VCIssuancePlugin;
 import io.mosip.certify.api.util.ErrorConstants;
-import io.mosip.certify.core.dto.ParsedAccessToken;
 import io.mosip.certify.core.exception.CertifyException;
 import io.mosip.esignet.core.dto.OIDCTransaction;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -93,7 +92,13 @@ public class MockVCIssuancePlugin implements VCIssuancePlugin {
 	@Value("#{${mosip.certify.mock.vciplugin.vc-credential-contexts:{'https://www.w3.org/2018/credentials/v1','https://schema.org/'}}}")
 	private List<String> vcCredentialContexts;
 
-	private static final String ACCESS_TOKEN_HASH = "accessTokenHash";
+    @Value("${mosip.certify.mock.vciplugin.issuer.key-cert:empty}")
+	private String issuerKeyAndCertificate = null;
+
+	@Value("${mosip.certify.mock.vciplugin.ca.key-cert:empty}")
+	private String caKeyAndCertificate = null;
+
+    private static final String ACCESS_TOKEN_HASH = "accessTokenHash";
 
 	public static final String UTC_DATETIME_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
 
@@ -203,7 +208,7 @@ public class MockVCIssuancePlugin implements VCIssuancePlugin {
 			Cipher cipher = Cipher.getInstance(aesECBTransformation);
 			byte[] decodedBytes = Base64.getUrlDecoder().decode(encryptedIndividualId);
 			cipher.init(Cipher.DECRYPT_MODE, getSecretKeyFromHSM());
-			return new String(cipher.doFinal(decodedBytes, 0, decodedBytes.length));
+            return new String(cipher.doFinal(decodedBytes, 0, decodedBytes.length));
 		} catch(Exception e) {
 			log.error("Error Cipher Operations of provided secret data.", e);
 			throw new CertifyException(AES_CIPHER_FAILED);
@@ -235,10 +240,48 @@ public class MockVCIssuancePlugin implements VCIssuancePlugin {
 	@Override
 	public VCResult<String> getVerifiableCredential(VCRequestDto vcRequestDto, String holderId,
 													Map<String, Object> identityDetails) throws VCIExchangeException {
+		String accessTokenHash = identityDetails.get(ACCESS_TOKEN_HASH).toString();
+        Map<String, Object> data = new HashMap<>();
+        String documentNumber;
+        try {
+			documentNumber = getIndividualId(getUserInfoTransaction(accessTokenHash));
+		} catch (Exception e) {
+			log.error("Error getting documentNumber", e);
+			throw new VCIExchangeException(ErrorConstants.VCI_EXCHANGE_FAILED);
+		}
+
+        log.info("Setting up the data for mDoc");
+		data.put("issue_date", "2024-01-12");
+		data.put("expiry_date", "2025-01-12");
+		data.put("family_name","Agatha");
+		data.put("given_name","Joseph");
+		data.put("birth_date", "1994-11-06");
+		data.put("issuing_country", "Island");
+		data.put("document_number",documentNumber);
+		data.put("driving_privileges",new HashMap<>(){{
+			put("vehicle_category_code","A");
+			put("issue_date","2023-01-01");
+			put("expiry_date","2043-01-01");
+		}});
+
+		if(vcRequestDto.getFormat().equals("mso_mdoc")){
+			VCResult<String> vcResult = new VCResult<>();
+			String mdocVc = null;
+			try {
+				 mdocVc = new io.mosip.certify.mock.integration.mocks.MdocGenerator().generate(data,holderId, caKeyAndCertificate,issuerKeyAndCertificate);
+			} catch (Exception e) {
+                log.error("Exception on mdoc creation", e);
+				throw new VCIExchangeException(ErrorConstants.VCI_EXCHANGE_FAILED);
+			}
+			vcResult.setCredential(mdocVc);
+			vcResult.setFormat("mso_mdoc");
+			return  vcResult;
+		}
+        log.error("not implemented the format {}", vcRequestDto);
 		throw new VCIExchangeException(ErrorConstants.NOT_IMPLEMENTED);
 	}
 
 	public OIDCTransaction getUserInfoTransaction(String accessTokenHash) {
-		return cacheManager.getCache(USERINFO_CACHE).get(accessTokenHash, OIDCTransaction.class);
+        return cacheManager.getCache(USERINFO_CACHE).get(accessTokenHash, OIDCTransaction.class);
 	}
 }
