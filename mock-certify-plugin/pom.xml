@@ -10,7 +10,7 @@
 
       <groupId>io.mosip.certify</groupId>
       <artifactId>mock-certify-plugin</artifactId>
-      <version>0.2.0</version>
+      <version>0.2.1-SNAPSHOT</version>
       <packaging>jar</packaging>
 
       <name>mock-certify-integration-impl</name>
@@ -73,7 +73,7 @@
         <dependency>
             <groupId>io.mosip.esignet</groupId>
             <artifactId>esignet-core</artifactId>
-            <version>1.4.0</version>
+            <version>1.4.1</version>
             <exclusions>
                 <exclusion>
                     <groupId>*</groupId>
@@ -84,7 +84,7 @@
         <dependency>
             <groupId>io.mosip.esignet</groupId>
             <artifactId>esignet-integration-api</artifactId>
-            <version>1.4.0</version>
+            <version>1.4.1</version>
             <exclusions>
                 <exclusion>
                     <groupId>*</groupId>
