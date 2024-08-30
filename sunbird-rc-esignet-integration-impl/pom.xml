@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>io.mosip.esignet.sunbirdrc</groupId>
 	<artifactId>sunbird-rc-esignet-integration-impl</artifactId>
-	<version>0.1.0-SNAPSHOT</version>
+	<version>0.2.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	
 	<name>sunbird-rc-esignet-integration-impl</name>
@@ -74,7 +74,7 @@
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-keymanager-service</artifactId>
-			<version>1.2.0.1-SNAPSHOT</version>
+			<version>1.2.0.1</version>
 			<scope>provided</scope>
 			<classifier>lib</classifier>
 			<exclusions>
