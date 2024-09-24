@@ -73,17 +73,10 @@ public class MockDataProviderPlugin implements DataProviderPlugin {
             formattedMap = getIndividualData(transaction);
         } catch (Exception e) {
             log.error("Unable to get KYC exchange data from MOCK", e);
+            throw new DataProviderExchangeException(e.toString());
         }
 
-        Map<String, Object> verCredJsonObject = new HashMap<>();
-        verCredJsonObject.put("@context", vcCredentialContexts);
-        verCredJsonObject.put("type", Arrays.asList("VerifiableCredential", "MockVerifiableCredential"));
-        verCredJsonObject.put("id", "urn:uuid:3978344f-8596-4c3a-a978-8fcaba3903c5");
-        verCredJsonObject.put("issuer", "did:example:123456789");
-        verCredJsonObject.put("validFrom", getUTCDateTime());
-        verCredJsonObject.put("credentialSubject", formattedMap);
-
-        return verCredJsonObject;
+        return formattedMap;
     }
 
     private Map<String, Object> getIndividualData(OIDCTransaction transaction) {
@@ -97,7 +90,6 @@ public class MockDataProviderPlugin implements DataProviderPlugin {
             ret.put("vcVer", "VC-V1");
             ret.put("id", getIdentityUrl + "/" + individualId);
             ret.put("UIN", individualId);
-            ret.put("name", res.get("name"));
             ret.put("fullName", res.get("fullName"));
             ret.put("gender", res.get("gender"));
             ret.put("dateOfBirth", res.get("dateOfBirth"));
@@ -108,6 +100,7 @@ public class MockDataProviderPlugin implements DataProviderPlugin {
             ret.put("region", res.get("region"));
             ret.put("postalCode", res.get("postalCode"));
             ret.put("face", res.get("encodedPhoto"));
+            ret.put("issuer", getIdentityUrl + "/" + individualId);
             return ret;
         } else {
             return new HashMap<>();
