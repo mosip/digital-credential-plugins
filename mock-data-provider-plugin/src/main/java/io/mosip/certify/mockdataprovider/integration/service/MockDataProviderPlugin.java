@@ -1,4 +1,3 @@
-
 package io.mosip.certify.mockdataprovider.integration.service;
 
 
@@ -88,7 +87,7 @@ public class MockDataProviderPlugin implements DataProviderPlugin {
         try {
             formattedMap = getIndividualData(transaction);
         } catch (Exception e) {
-            log.error("Failed to fetch json data for from data provider plugin", e);
+            log.error("Unable to get KYC exchange data from MOCK", e);
         }
         return formattedMap;
     }

@@ -1,4 +1,3 @@
-
 package io.mosip.certify.mockdataprovider.integration.service;
 
 import io.mosip.certify.api.exception.DataProviderExchangeException;
