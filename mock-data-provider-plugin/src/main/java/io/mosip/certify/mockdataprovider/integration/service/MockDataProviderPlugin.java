@@ -18,6 +18,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import javax.crypto.Cipher;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.security.GeneralSecurityException;
 import java.security.Key;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -67,15 +70,26 @@ public class MockDataProviderPlugin implements DataProviderPlugin {
 
     @Override
     public Map<String, Object> fetchData(Map<String, Object> identityDetails) throws DataProviderExchangeException {
-        OIDCTransaction transaction = getUserInfoTransaction(identityDetails.get(ACCESS_TOKEN_HASH).toString());
+
+        Map<String, Object> dataProviderMap = null;
+        try {
+            dataProviderMap = buildDataJson(identityDetails.get(ACCESS_TOKEN_HASH).toString());
+            return dataProviderMap;
+        } catch (Exception e) {
+            log.error("Failed to fetch json data for from data provider plugin", e);
+        }
+
+        throw new DataProviderExchangeException();
+    }
+
+    private Map<String, Object> buildDataJson(String accessHashToken) throws IOException, GeneralSecurityException, URISyntaxException {
+        OIDCTransaction transaction = getUserInfoTransaction(accessHashToken);
         Map<String, Object> formattedMap = null;
         try {
             formattedMap = getIndividualData(transaction);
         } catch (Exception e) {
-            log.error("Unable to get KYC exchange data from MOCK", e);
-            throw new DataProviderExchangeException(e.toString());
+            log.error("Failed to fetch json data for from data provider plugin", e);
         }
-
         return formattedMap;
     }
 

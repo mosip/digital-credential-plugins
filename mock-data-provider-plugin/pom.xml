@@ -4,7 +4,7 @@
 
     <groupId>io.mosip.certify</groupId>
     <artifactId>mock-data-provider-plugin</artifactId>
-    <version>0.2.2-SNAPSHOT</version>
+    <version>0.3.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>mock-data-provider-plugin</name>
