@@ -180,7 +180,6 @@ public class MockVCIssuancePlugin implements VCIssuancePlugin {
 			ret.put("vcVer", "VC-V1");
 			ret.put("id", getIdentityUrl+"/"+individualId);
 			ret.put("UIN", individualId);
-			ret.put("name", res.get("name"));
 			ret.put("fullName", res.get("fullName"));
 			ret.put("gender", res.get("gender"));
 			ret.put("dateOfBirth", res.get("dateOfBirth"));
