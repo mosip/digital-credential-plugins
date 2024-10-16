@@ -13,9 +13,12 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.support.NoOpCache;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -27,13 +30,17 @@ public class MockDataProviderPluginTest {
     @Mock
     Cache cache=new NoOpCache("test");
 
+    @Mock
+    MockTransactionHelper mockTransactionHelper;
+
+    @Mock
+    RestTemplate restTemplate;
+
     @InjectMocks
-    MockDataProviderPlugin mockDataProviderPlugin = new MockDataProviderPlugin();
-
-
+    MockDataProviderPlugin mockDataProviderPlugin;
 
     @Before
-    public void setUp() {
+    public void setup() throws DataProviderExchangeException {
         ReflectionTestUtils.setField(mockDataProviderPlugin,"getIdentityUrl","http://example.com");
         ReflectionTestUtils.setField(mockDataProviderPlugin,"cacheSecretKeyRefId","cacheSecretKeyRefId");
         ReflectionTestUtils.setField(mockDataProviderPlugin,"aesECBTransformation","AES/ECB/PKCS5Padding");
@@ -41,21 +48,46 @@ public class MockDataProviderPluginTest {
         ReflectionTestUtils.setField(mockDataProviderPlugin,"secureIndividualId",false);
 
         OIDCTransaction oidcTransaction = new OIDCTransaction();
+        oidcTransaction.setTransactionId("test");
         oidcTransaction.setIndividualId("individualId");
         oidcTransaction.setKycToken("kycToken");
         oidcTransaction.setAuthTransactionId("authTransactionId");
         oidcTransaction.setRelyingPartyId("relyingPartyId");
         oidcTransaction.setClaimsLocales(new String[]{"en-US", "en", "en-CA", "fr-FR", "fr-CA"});
+        Mockito.when(mockTransactionHelper.getUserInfoTransaction("ACCESS_TOKEN_HASH")).thenReturn(oidcTransaction);
 
-        Mockito.when(cacheManager.getCache(Mockito.anyString())).thenReturn(cache);
+        Map<String, Object> identityJson = new HashMap<>();
+        identityJson.put("fullName", "fullName");
+        identityJson.put("gender", "gender");
+        identityJson.put("dateOfBirth", "dateOfBirth");
+        identityJson.put("email", "email");
+        identityJson.put("phone", "phone");
+        identityJson.put("streetAddress", "streetAddress");
+        identityJson.put("locality", "locality");
+        identityJson.put("region", "region");
+        identityJson.put("postalCode", "postalCode");
+        identityJson.put("encodedPhoto", "encodedPhoto");
+        Map<String, Object> response = new HashMap<>();
+        response.put("response", identityJson);
+        Mockito.when(restTemplate.getForObject(Mockito.anyString(), Mockito.any())).thenReturn(response);
     }
 
     @Test
-    public void getJSONData() throws DataProviderExchangeException {
+    public void getJSONDataWithValidDetails_thenPass() throws DataProviderExchangeException {
         Map<String, Object> jsonData = mockDataProviderPlugin.fetchData(Map.of("accessTokenHash","ACCESS_TOKEN_HASH","client_id","CLIENT_ID"));
-        Assert.assertNull(jsonData);
-//        Assert.assertNotNull(jsonData.get("type"));
-//        List<String> expectedType = Arrays.asList("VerifiableCredential", "MockVerifiableCredential");
-//        Assert.assertEquals(expectedType, jsonData.get("type"));
+        Assert.assertNotNull(jsonData);
+        Assert.assertEquals("fullName" ,jsonData.get("fullName"));
+        Assert.assertEquals("individualId", jsonData.get("UIN"));
+        Assert.assertNotNull(jsonData.get("issuer"));
+        Assert.assertEquals("http://example.com/individualId", jsonData.get("issuer"));
+    }
+
+    @Test
+    public void getJSONDataWithInValidDetails_thenFail() throws DataProviderExchangeException {
+        try {
+            mockDataProviderPlugin.fetchData(Map.of("accessTokenHash","test","client_id","CLIENT_ID"));
+        } catch (Exception e) {
+            Assert.assertEquals("INVALID_ACCESS_TOKEN", e.getMessage());
+        }
     }
 }

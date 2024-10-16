@@ -17,9 +17,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import javax.crypto.Cipher;
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.security.GeneralSecurityException;
 import java.security.Key;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -32,16 +29,24 @@ import java.util.*;
 public class MockDataProviderPlugin implements DataProviderPlugin {
     private static final String AES_CIPHER_FAILED = "aes_cipher_failed";
     private static final String NO_UNIQUE_ALIAS = "no_unique_alias";
-    private static final String USERINFO_CACHE = "userinfo";
+
+    private static final String ACCESS_TOKEN_HASH = "accessTokenHash";
+
+    public static final String UTC_DATETIME_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
+
+    public static final String CERTIFY_SERVICE_APP_ID = "CERTIFY_SERVICE";
 
     @Autowired
-    private CacheManager cacheManager;
+    private RestTemplate restTemplate;
 
     @Autowired
     private KeyStore keyStore;
 
     @Autowired
     private KeymanagerDBHelper dbHelper;
+
+    @Autowired
+    private MockTransactionHelper mockTransactionHelper;
 
     @Value("${mosip.certify.mock.authenticator.get-identity-url}")
     private String getIdentityUrl;
@@ -58,66 +63,38 @@ public class MockDataProviderPlugin implements DataProviderPlugin {
     @Value("${mosip.certify.cache.store.individual-id}")
     private boolean storeIndividualId;
 
-    @Value("#{${mosip.certify.mock.vciplugin.vc-credential-contexts:{'https://www.w3.org/2018/credentials/v1','https://schema.org/'}}}")
-    private List<String> vcCredentialContexts;
-
-    private static final String ACCESS_TOKEN_HASH = "accessTokenHash";
-
-    public static final String UTC_DATETIME_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
-
-    public static final String CERTIFY_SERVICE_APP_ID = "CERTIFY_SERVICE";
-
     @Override
     public Map<String, Object> fetchData(Map<String, Object> identityDetails) throws DataProviderExchangeException {
-
-        Map<String, Object> dataProviderMap = null;
         try {
-            dataProviderMap = buildDataJson(identityDetails.get(ACCESS_TOKEN_HASH).toString());
-            return dataProviderMap;
+            OIDCTransaction transaction = mockTransactionHelper.getUserInfoTransaction(identityDetails.get(ACCESS_TOKEN_HASH).toString());
+            String individualId = getIndividualId(transaction);
+            if (individualId != null) {
+                Map<String, Object> res = restTemplate.getForObject(
+                        getIdentityUrl + "/" + individualId,
+                        HashMap.class);
+                res = (Map<String, Object>) res.get("response");
+                Map<String, Object> ret = new HashMap<>();
+                ret.put("vcVer", "VC-V1");
+                ret.put("id", getIdentityUrl + "/" + individualId);
+                ret.put("UIN", individualId);
+                ret.put("fullName", res.get("fullName"));
+                ret.put("gender", res.get("gender"));
+                ret.put("dateOfBirth", res.get("dateOfBirth"));
+                ret.put("email", res.get("email"));
+                ret.put("phone", res.get("phone"));
+                ret.put("addressLine1", res.get("streetAddress"));
+                ret.put("province", res.get("locality"));
+                ret.put("region", res.get("region"));
+                ret.put("postalCode", res.get("postalCode"));
+                ret.put("face", res.get("encodedPhoto"));
+                ret.put("issuer", getIdentityUrl + "/" + individualId);
+                return ret;
+            }
         } catch (Exception e) {
             log.error("Failed to fetch json data for from data provider plugin", e);
         }
 
-        throw new DataProviderExchangeException();
-    }
-
-    private Map<String, Object> buildDataJson(String accessHashToken) throws IOException, GeneralSecurityException, URISyntaxException {
-        OIDCTransaction transaction = getUserInfoTransaction(accessHashToken);
-        Map<String, Object> formattedMap = null;
-        try {
-            formattedMap = getIndividualData(transaction);
-        } catch (Exception e) {
-            log.error("Unable to get KYC exchange data from MOCK", e);
-        }
-        return formattedMap;
-    }
-
-    private Map<String, Object> getIndividualData(OIDCTransaction transaction) {
-        String individualId = getIndividualId(transaction);
-        if (individualId != null) {
-            Map<String, Object> res = new RestTemplate().getForObject(
-                    getIdentityUrl + "/" + individualId,
-                    HashMap.class);
-            res = (Map<String, Object>) res.get("response");
-            Map<String, Object> ret = new HashMap<>();
-            ret.put("vcVer", "VC-V1");
-            ret.put("id", getIdentityUrl + "/" + individualId);
-            ret.put("UIN", individualId);
-            ret.put("fullName", res.get("fullName"));
-            ret.put("gender", res.get("gender"));
-            ret.put("dateOfBirth", res.get("dateOfBirth"));
-            ret.put("email", res.get("email"));
-            ret.put("phone", res.get("phone"));
-            ret.put("addressLine1", res.get("streetAddress"));
-            ret.put("province", res.get("locality"));
-            ret.put("region", res.get("region"));
-            ret.put("postalCode", res.get("postalCode"));
-            ret.put("face", res.get("encodedPhoto"));
-            ret.put("issuer", getIdentityUrl + "/" + individualId);
-            return ret;
-        } else {
-            return new HashMap<>();
-        }
+        throw new DataProviderExchangeException("INVALID_ACCESS_TOKEN");
     }
 
     protected String getIndividualId(OIDCTransaction transaction) {
@@ -158,9 +135,5 @@ public class MockDataProviderPlugin implements DataProviderPlugin {
 
     private static String getUTCDateTime() {
         return ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern(UTC_DATETIME_PATTERN));
-    }
-
-    public OIDCTransaction getUserInfoTransaction(String accessTokenHash) {
-        return cacheManager.getCache(USERINFO_CACHE).get(accessTokenHash, OIDCTransaction.class);
     }
 }
