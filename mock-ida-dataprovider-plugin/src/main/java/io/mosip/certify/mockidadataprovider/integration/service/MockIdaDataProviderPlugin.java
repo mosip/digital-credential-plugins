@@ -64,9 +64,6 @@ public class MockIdaDataProviderPlugin implements DataProviderPlugin {
     @Value("${mosip.certify.cache.store.individual-id}")
     private boolean storeIndividualId;
 
-    @Value("${mosip.certify.mockdp.vciplugin.issuer}")
-    private String getIssuerUrl;
-
     @Override
     public Map<String, Object> fetchData(Map<String, Object> identityDetails) throws DataProviderExchangeException {
         try {
@@ -91,7 +88,6 @@ public class MockIdaDataProviderPlugin implements DataProviderPlugin {
                 ret.put("region", res.get("region"));
                 ret.put("postalCode", res.get("postalCode"));
                 ret.put("face", res.get("encodedPhoto"));
-                ret.put("issuer", getIssuerUrl);
                 return ret;
             }
         } catch (Exception e) {

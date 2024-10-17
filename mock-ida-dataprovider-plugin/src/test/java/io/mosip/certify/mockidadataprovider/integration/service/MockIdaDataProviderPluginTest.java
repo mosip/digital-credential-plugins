@@ -43,7 +43,6 @@ public class MockIdaDataProviderPluginTest {
         ReflectionTestUtils.setField(mockDataProviderPlugin,"aesECBTransformation","AES/ECB/PKCS5Padding");
         ReflectionTestUtils.setField(mockDataProviderPlugin,"storeIndividualId",true);
         ReflectionTestUtils.setField(mockDataProviderPlugin,"isIndividualIDEncrypted",false);
-        ReflectionTestUtils.setField(mockDataProviderPlugin,"getIssuerUrl","http://example.issuer.com");
 
         OIDCTransaction oidcTransaction = new OIDCTransaction();
         oidcTransaction.setTransactionId("test");
@@ -74,17 +73,19 @@ public class MockIdaDataProviderPluginTest {
     public void getJSONDataWithValidDetails_thenPass() throws DataProviderExchangeException {
         Map<String, Object> jsonData = mockDataProviderPlugin.fetchData(Map.of("accessTokenHash","ACCESS_TOKEN_HASH","client_id","CLIENT_ID"));
         Assert.assertNotNull(jsonData);
+        Assert.assertNotNull(jsonData.get("fullName"));
         Assert.assertEquals("fullName" ,jsonData.get("fullName"));
+        Assert.assertNotNull(jsonData.get("UIN"));
         Assert.assertEquals("individualId", jsonData.get("UIN"));
-        Assert.assertNotNull(jsonData.get("issuer"));
-        Assert.assertEquals("http://example.issuer.com", jsonData.get("issuer"));
+        Assert.assertNotNull(jsonData.get("id"));
+        Assert.assertEquals("http://example.com/individualId", jsonData.get("id"));
     }
 
     @Test
-    public void getJSONDataWithInValidDetails_thenFail() throws DataProviderExchangeException {
+    public void getJSONDataWithInValidDetails_thenFail() {
         try {
             mockDataProviderPlugin.fetchData(Map.of("accessTokenHash","test","client_id","CLIENT_ID"));
-        } catch (Exception e) {
+        } catch (DataProviderExchangeException e) {
             Assert.assertEquals("ERROR_FETCHING_IDENTITY_DATA", e.getMessage());
         }
     }
