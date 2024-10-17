@@ -1,4 +1,4 @@
-package io.mosip.certify.mockdataprovider.integration.service;
+package io.mosip.certify.mockidadataprovider.integration.service;
 
 import io.mosip.certify.api.exception.DataProviderExchangeException;
 import io.mosip.esignet.core.dto.OIDCTransaction;
@@ -13,17 +13,14 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.support.NoOpCache;
-import org.springframework.http.ResponseEntity;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @RunWith(MockitoJUnitRunner.class)
-public class MockDataProviderPluginTest {
+public class MockIdaDataProviderPluginTest {
     @Mock
     CacheManager cacheManager;
 
@@ -37,7 +34,7 @@ public class MockDataProviderPluginTest {
     RestTemplate restTemplate;
 
     @InjectMocks
-    MockDataProviderPlugin mockDataProviderPlugin;
+    MockIdaDataProviderPlugin mockDataProviderPlugin;
 
     @Before
     public void setup() throws DataProviderExchangeException {
@@ -45,7 +42,8 @@ public class MockDataProviderPluginTest {
         ReflectionTestUtils.setField(mockDataProviderPlugin,"cacheSecretKeyRefId","cacheSecretKeyRefId");
         ReflectionTestUtils.setField(mockDataProviderPlugin,"aesECBTransformation","AES/ECB/PKCS5Padding");
         ReflectionTestUtils.setField(mockDataProviderPlugin,"storeIndividualId",true);
-        ReflectionTestUtils.setField(mockDataProviderPlugin,"secureIndividualId",false);
+        ReflectionTestUtils.setField(mockDataProviderPlugin,"isIndividualIDEncrypted",false);
+        ReflectionTestUtils.setField(mockDataProviderPlugin,"getIssuerUrl","http://example.issuer.com");
 
         OIDCTransaction oidcTransaction = new OIDCTransaction();
         oidcTransaction.setTransactionId("test");
@@ -79,7 +77,7 @@ public class MockDataProviderPluginTest {
         Assert.assertEquals("fullName" ,jsonData.get("fullName"));
         Assert.assertEquals("individualId", jsonData.get("UIN"));
         Assert.assertNotNull(jsonData.get("issuer"));
-        Assert.assertEquals("http://example.com/individualId", jsonData.get("issuer"));
+        Assert.assertEquals("http://example.issuer.com", jsonData.get("issuer"));
     }
 
     @Test
@@ -87,7 +85,7 @@ public class MockDataProviderPluginTest {
         try {
             mockDataProviderPlugin.fetchData(Map.of("accessTokenHash","test","client_id","CLIENT_ID"));
         } catch (Exception e) {
-            Assert.assertEquals("INVALID_ACCESS_TOKEN", e.getMessage());
+            Assert.assertEquals("ERROR_FETCHING_IDENTITY_DATA", e.getMessage());
         }
     }
 }

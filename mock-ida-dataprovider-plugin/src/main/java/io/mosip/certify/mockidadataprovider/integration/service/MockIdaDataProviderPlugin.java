@@ -1,4 +1,4 @@
-package io.mosip.certify.mockdataprovider.integration.service;
+package io.mosip.certify.mockidadataprovider.integration.service;
 
 
 import io.mosip.certify.api.exception.DataProviderExchangeException;
@@ -12,7 +12,7 @@ import io.mosip.kernel.keymanagerservice.helper.KeymanagerDBHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.CacheManager;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
@@ -24,9 +24,10 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
+@ConditionalOnProperty(value = "mosip.certify.integration.data-provider-plugin", havingValue = "MockIdaDataProviderPlugin")
 @Component
 @Slf4j
-public class MockDataProviderPlugin implements DataProviderPlugin {
+public class MockIdaDataProviderPlugin implements DataProviderPlugin {
     private static final String AES_CIPHER_FAILED = "aes_cipher_failed";
     private static final String NO_UNIQUE_ALIAS = "no_unique_alias";
 
@@ -58,10 +59,13 @@ public class MockDataProviderPlugin implements DataProviderPlugin {
     private String aesECBTransformation;
 
     @Value("${mosip.certify.cache.secure.individual-id}")
-    private boolean secureIndividualId;
+    private boolean isIndividualIDEncrypted;
 
     @Value("${mosip.certify.cache.store.individual-id}")
     private boolean storeIndividualId;
+
+    @Value("${mosip.certify.mockdp.vciplugin.issuer}")
+    private String getIssuerUrl;
 
     @Override
     public Map<String, Object> fetchData(Map<String, Object> identityDetails) throws DataProviderExchangeException {
@@ -87,11 +91,12 @@ public class MockDataProviderPlugin implements DataProviderPlugin {
                 ret.put("region", res.get("region"));
                 ret.put("postalCode", res.get("postalCode"));
                 ret.put("face", res.get("encodedPhoto"));
-                ret.put("issuer", getIdentityUrl + "/" + individualId);
+                ret.put("issuer", getIssuerUrl);
                 return ret;
             }
         } catch (Exception e) {
             log.error("Failed to fetch json data for from data provider plugin", e);
+            throw new DataProviderExchangeException("ERROR_FETCHING_IDENTITY_DATA");
         }
 
         throw new DataProviderExchangeException("INVALID_ACCESS_TOKEN");
@@ -100,7 +105,7 @@ public class MockDataProviderPlugin implements DataProviderPlugin {
     protected String getIndividualId(OIDCTransaction transaction) {
         if (!storeIndividualId)
             return null;
-        return secureIndividualId ? decryptIndividualId(transaction.getIndividualId()) : transaction.getIndividualId();
+        return isIndividualIDEncrypted ? decryptIndividualId(transaction.getIndividualId()) : transaction.getIndividualId();
     }
 
     private String decryptIndividualId(String encryptedIndividualId) {

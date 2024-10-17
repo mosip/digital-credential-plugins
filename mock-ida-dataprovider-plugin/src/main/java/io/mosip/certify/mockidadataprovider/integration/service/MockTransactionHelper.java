@@ -1,4 +1,4 @@
-package io.mosip.certify.mockdataprovider.integration.service;
+package io.mosip.certify.mockidadataprovider.integration.service;
 
 import io.mosip.certify.api.exception.DataProviderExchangeException;
 import io.mosip.esignet.core.dto.OIDCTransaction;
