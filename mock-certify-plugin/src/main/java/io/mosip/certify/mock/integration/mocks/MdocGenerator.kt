@@ -8,9 +8,13 @@ import com.android.identity.internal.Util
 import com.android.identity.mdoc.mso.MobileSecurityObjectGenerator
 import com.android.identity.mdoc.util.MdocUtil
 import com.android.identity.util.Timestamp
-import io.mosip.certify.util.*
+import io.mosip.certify.util.CBORConverter
+import io.mosip.certify.util.JwkToKeyConverter
+import io.mosip.certify.util.KeyPairAndCertificate
+import io.mosip.certify.util.PKCS12Reader
 import java.io.ByteArrayOutputStream
-import io.mosip.certify.util.IssuerKeyPairAndCertificate
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 import java.util.*
 
 
@@ -26,22 +30,31 @@ class MdocGenerator {
     fun generate(
         data: MutableMap<String, out Any>,
         holderId: String,
-        caKeyAndCertificate: String,
         issuerKeyAndCertificate: String
     ): String? {
-        val issuerKeyPairAndCertificate: IssuerKeyPairAndCertificate? = readKeypairAndCertificates(
-            caKeyAndCertificate,issuerKeyAndCertificate
-        )
-        if(issuerKeyPairAndCertificate == null) {
+        val issuerDetails: KeyPairAndCertificate = PKCS12Reader().extract(issuerKeyAndCertificate)
+
+        if(issuerDetails.keyPair == null) {
             throw RuntimeException("Unable to load Crypto details")
         }
         val devicePublicKey = JwkToKeyConverter().convertToPublicKey(holderId.replace("did:jwk:", ""))
-        val issuerKeypair = issuerKeyPairAndCertificate.issuerKeypair()
+        val issuerKeypair = issuerDetails.keyPair
 
+        val issueDate = Instant.now()
+        val formattedIssueDate = issueDate.toString()
+        val expiryDate = issueDate.plus(365, ChronoUnit.DAYS)
+        val formattedExpiryDate = expiryDate.toString()
         val nameSpacedDataBuilder: NameSpacedData.Builder = NameSpacedData.Builder()
+        //Validity of document is assigned here
+        nameSpacedDataBuilder.putEntryString(NAMESPACE, "issue_date", (formattedIssueDate))
+        nameSpacedDataBuilder.putEntryString(NAMESPACE, "expiry_date", (formattedExpiryDate))
+        (data.get("driving_privileges") as HashMap<String, String>)["issue_date"] = formattedIssueDate
+        (data.get("driving_privileges") as MutableMap<String, String>)["expiry_date"] = formattedExpiryDate
         data.keys.forEach { key ->
             nameSpacedDataBuilder.putEntryString(NAMESPACE, key, data[key].toString())
         }
+
+
         val nameSpacedData: NameSpacedData =
             nameSpacedDataBuilder
                 .build()
@@ -50,13 +63,13 @@ class MdocGenerator {
         val calculateDigestsForNameSpace =
             MdocUtil.calculateDigestsForNameSpace(NAMESPACE, generatedIssuerNameSpaces, DIGEST_ALGORITHM)
 
-        val mobileSecurityObjectGenerator = MobileSecurityObjectGenerator(DIGEST_ALGORITHM, NAMESPACE, devicePublicKey)
+        val mobileSecurityObjectGenerator = MobileSecurityObjectGenerator(DIGEST_ALGORITHM, DOCTYPE, devicePublicKey)
         mobileSecurityObjectGenerator.addDigestIdsForNamespace(NAMESPACE, calculateDigestsForNameSpace)
-        val expirationTime: Long = kotlinx.datetime.Instant.Companion.DISTANT_FUTURE.toEpochMilliseconds()
+        //Validity of MSO & its signature is assigned here
         mobileSecurityObjectGenerator.setValidityInfo(
             Timestamp.now(),
             Timestamp.now(),
-            Timestamp.ofEpochMilli(expirationTime),
+            Timestamp.ofEpochMilli(expiryDate.toEpochMilli()),
             null
         )
         val mso: ByteArray = mobileSecurityObjectGenerator.generate()
@@ -64,27 +77,12 @@ class MdocGenerator {
         val coseSign1Sign: DataItem = Util.coseSign1Sign(
             issuerKeypair.private,
             ECDSA_ALGORITHM,
-            mso.copyOf(),
+            Util.cborEncode(Util.cborBuildTaggedByteString(mso)),
             null,
-            listOf(issuerKeyPairAndCertificate.caCertificate(), issuerKeyPairAndCertificate.issuerCertificate())
+            listOf(issuerDetails.certificate)
         )
 
         return construct(generatedIssuerNameSpaces, coseSign1Sign)
-    }
-
-    @Throws(Exception::class)
-    private fun readKeypairAndCertificates(caKeyAndCertificate: String,issuerKeyAndCertificate: String): IssuerKeyPairAndCertificate? {
-        val pkcS12Reader = PKCS12Reader()
-        val caDetails: KeyPairAndCertificate = pkcS12Reader.extract(caKeyAndCertificate)
-        val issuerDetails: KeyPairAndCertificate = pkcS12Reader.extract(issuerKeyAndCertificate)
-        if (issuerDetails != null && caDetails != null) {
-            return IssuerKeyPairAndCertificate(
-                issuerDetails.keyPair,
-                issuerDetails.certificate,
-                caDetails.certificate
-            )
-        }
-        return null
     }
 
     private fun construct(nameSpaces: MutableMap<String, MutableList<ByteArray>>, issuerAuth: DataItem): String? {

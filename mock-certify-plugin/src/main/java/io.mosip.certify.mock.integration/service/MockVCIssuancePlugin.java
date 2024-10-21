@@ -95,9 +95,6 @@ public class MockVCIssuancePlugin implements VCIssuancePlugin {
     @Value("${mosip.certify.mock.vciplugin.issuer.key-cert:empty}")
 	private String issuerKeyAndCertificate = null;
 
-	@Value("${mosip.certify.mock.vciplugin.ca.key-cert:empty}")
-	private String caKeyAndCertificate = null;
-
     private static final String ACCESS_TOKEN_HASH = "accessTokenHash";
 
 	public static final String UTC_DATETIME_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
@@ -252,7 +249,7 @@ public class MockVCIssuancePlugin implements VCIssuancePlugin {
 			VCResult<String> vcResult = new VCResult<>();
 			String mdocVc = null;
 			try {
-				 mdocVc = new io.mosip.certify.mock.integration.mocks.MdocGenerator().generate(mockDataForMsoMdoc(documentNumber),holderId, caKeyAndCertificate,issuerKeyAndCertificate);
+				 mdocVc = new io.mosip.certify.mock.integration.mocks.MdocGenerator().generate(mockDataForMsoMdoc(documentNumber),holderId, issuerKeyAndCertificate);
 			} catch (Exception e) {
                 log.error("Exception on mdoc creation", e);
 				throw new VCIExchangeException(ErrorConstants.VCI_EXCHANGE_FAILED);
@@ -268,18 +265,13 @@ public class MockVCIssuancePlugin implements VCIssuancePlugin {
 	private Map<String, Object> mockDataForMsoMdoc(String documentNumber) {
 		Map<String, Object> data = new HashMap<>();
 		log.info("Setting up the data for mDoc");
-		//TODO: Populate datetime in real time
-		data.put("issue_date", "2024-01-12");
-		data.put("expiry_date", "2025-01-12");
 		data.put("family_name","Agatha");
 		data.put("given_name","Joseph");
 		data.put("birth_date", "1994-11-06");
-		data.put("issuing_country", "Island");
+		data.put("issuing_country", "IN");
 		data.put("document_number", documentNumber);
 		data.put("driving_privileges",new HashMap<>(){{
 			put("vehicle_category_code","A");
-			put("issue_date","2023-01-01");
-			put("expiry_date","2043-01-01");
 		}});
 		return data;
 	}
