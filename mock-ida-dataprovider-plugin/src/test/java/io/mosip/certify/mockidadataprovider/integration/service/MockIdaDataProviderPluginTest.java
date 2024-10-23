@@ -2,6 +2,8 @@ package io.mosip.certify.mockidadataprovider.integration.service;
 
 import io.mosip.certify.api.exception.DataProviderExchangeException;
 import io.mosip.esignet.core.dto.OIDCTransaction;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -70,8 +72,8 @@ public class MockIdaDataProviderPluginTest {
     }
 
     @Test
-    public void getJSONDataWithValidDetails_thenPass() throws DataProviderExchangeException {
-        Map<String, Object> jsonData = mockDataProviderPlugin.fetchData(Map.of("accessTokenHash","ACCESS_TOKEN_HASH","client_id","CLIENT_ID"));
+    public void getJSONDataWithValidDetails_thenPass() throws DataProviderExchangeException, JSONException {
+        JSONObject jsonData = mockDataProviderPlugin.fetchData(Map.of("accessTokenHash","ACCESS_TOKEN_HASH","client_id","CLIENT_ID"));
         Assert.assertNotNull(jsonData);
         Assert.assertNotNull(jsonData.get("fullName"));
         Assert.assertEquals("fullName" ,jsonData.get("fullName"));
