@@ -10,6 +10,7 @@ import io.mosip.kernel.keymanagerservice.constant.KeymanagerConstant;
 import io.mosip.kernel.keymanagerservice.entity.KeyAlias;
 import io.mosip.kernel.keymanagerservice.helper.KeymanagerDBHelper;
 import lombok.extern.slf4j.Slf4j;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -65,7 +66,7 @@ public class MockIdaDataProviderPlugin implements DataProviderPlugin {
     private boolean storeIndividualId;
 
     @Override
-    public Map<String, Object> fetchData(Map<String, Object> identityDetails) throws DataProviderExchangeException {
+    public JSONObject fetchData(Map<String, Object> identityDetails) throws DataProviderExchangeException {
         try {
             OIDCTransaction transaction = mockTransactionHelper.getUserInfoTransaction(identityDetails.get(ACCESS_TOKEN_HASH).toString());
             String individualId = getIndividualId(transaction);
@@ -74,21 +75,21 @@ public class MockIdaDataProviderPlugin implements DataProviderPlugin {
                         getIdentityUrl + "/" + individualId,
                         HashMap.class);
                 res = (Map<String, Object>) res.get("response");
-                Map<String, Object> ret = new HashMap<>();
-                ret.put("vcVer", "VC-V1");
-                ret.put("id", getIdentityUrl + "/" + individualId);
-                ret.put("UIN", individualId);
-                ret.put("fullName", res.get("fullName"));
-                ret.put("gender", res.get("gender"));
-                ret.put("dateOfBirth", res.get("dateOfBirth"));
-                ret.put("email", res.get("email"));
-                ret.put("phone", res.get("phone"));
-                ret.put("addressLine1", res.get("streetAddress"));
-                ret.put("province", res.get("locality"));
-                ret.put("region", res.get("region"));
-                ret.put("postalCode", res.get("postalCode"));
-                ret.put("face", res.get("encodedPhoto"));
-                return ret;
+                JSONObject jsonRes = new JSONObject();
+                jsonRes.put("vcVer", "VC-V1");
+                jsonRes.put("id", getIdentityUrl + "/" + individualId);
+                jsonRes.put("UIN", individualId);
+                jsonRes.put("fullName", res.get("fullName"));
+                jsonRes.put("gender", res.get("gender"));
+                jsonRes.put("dateOfBirth", res.get("dateOfBirth"));
+                jsonRes.put("email", res.get("email"));
+                jsonRes.put("phone", res.get("phone"));
+                jsonRes.put("addressLine1", res.get("streetAddress"));
+                jsonRes.put("province", res.get("locality"));
+                jsonRes.put("region", res.get("region"));
+                jsonRes.put("postalCode", res.get("postalCode"));
+                jsonRes.put("face", res.get("encodedPhoto"));
+                return jsonRes;
             }
         } catch (Exception e) {
             log.error("Failed to fetch json data for from data provider plugin", e);
