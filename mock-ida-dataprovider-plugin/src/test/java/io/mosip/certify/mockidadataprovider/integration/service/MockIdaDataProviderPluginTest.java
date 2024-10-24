@@ -1,6 +1,8 @@
 package io.mosip.certify.mockidadataprovider.integration.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.certify.api.exception.DataProviderExchangeException;
+import io.mosip.certify.mockidadataprovider.integration.repository.MockDataRepository;
 import io.mosip.esignet.core.dto.OIDCTransaction;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -34,6 +36,12 @@ public class MockIdaDataProviderPluginTest {
 
     @Mock
     RestTemplate restTemplate;
+
+    @Mock
+    MockDataRepository mockDataRepository;
+
+    @Mock
+    ObjectMapper objectMapper;
 
     @InjectMocks
     MockIdaDataProviderPlugin mockDataProviderPlugin;

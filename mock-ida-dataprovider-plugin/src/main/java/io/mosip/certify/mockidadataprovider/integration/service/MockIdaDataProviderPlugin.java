@@ -1,9 +1,11 @@
 package io.mosip.certify.mockidadataprovider.integration.service;
 
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.certify.api.exception.DataProviderExchangeException;
 import io.mosip.certify.api.spi.DataProviderPlugin;
 import io.mosip.certify.core.exception.CertifyException;
+import io.mosip.certify.mockidadataprovider.integration.repository.MockDataRepository;
 import io.mosip.esignet.core.dto.OIDCTransaction;
 import io.mosip.kernel.core.keymanager.spi.KeyStore;
 import io.mosip.kernel.keymanagerservice.constant.KeymanagerConstant;
@@ -50,6 +52,9 @@ public class MockIdaDataProviderPlugin implements DataProviderPlugin {
     @Autowired
     private MockTransactionHelper mockTransactionHelper;
 
+    @Autowired
+    private MockDataRepository mockDataRepository;
+
     @Value("${mosip.certify.mock.authenticator.get-identity-url}")
     private String getIdentityUrl;
 
@@ -65,30 +70,25 @@ public class MockIdaDataProviderPlugin implements DataProviderPlugin {
     @Value("${mosip.certify.cache.store.individual-id}")
     private boolean storeIndividualId;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
     @Override
     public JSONObject fetchData(Map<String, Object> identityDetails) throws DataProviderExchangeException {
         try {
             OIDCTransaction transaction = mockTransactionHelper.getUserInfoTransaction(identityDetails.get(ACCESS_TOKEN_HASH).toString());
             String individualId = getIndividualId(transaction);
+
             if (individualId != null) {
-                Map<String, Object> res = restTemplate.getForObject(
-                        getIdentityUrl + "/" + individualId,
-                        HashMap.class);
-                res = (Map<String, Object>) res.get("response");
-                JSONObject jsonRes = new JSONObject();
-                jsonRes.put("vcVer", "VC-V1");
-                jsonRes.put("id", getIdentityUrl + "/" + individualId);
-                jsonRes.put("UIN", individualId);
-                jsonRes.put("fullName", res.get("fullName"));
-                jsonRes.put("gender", res.get("gender"));
-                jsonRes.put("dateOfBirth", res.get("dateOfBirth"));
-                jsonRes.put("email", res.get("email"));
-                jsonRes.put("phone", res.get("phone"));
-                jsonRes.put("addressLine1", res.get("streetAddress"));
-                jsonRes.put("province", res.get("locality"));
-                jsonRes.put("region", res.get("region"));
-                jsonRes.put("postalCode", res.get("postalCode"));
-                jsonRes.put("face", res.get("encodedPhoto"));
+                Object[] mockData = mockDataRepository.getIdentityDataFromIndividualId(individualId);
+                Map<String, Object> mockDataMap = new HashMap<>();
+                try {
+                    mockDataMap = objectMapper.readValue(mockData[1].toString(), HashMap.class);
+                    log.info("mock data map " + mockDataMap);
+                } catch (Exception e) {
+                    log.error("mock data not present");
+                }
+                JSONObject jsonRes = new JSONObject(mockDataMap);
                 return jsonRes;
             }
         } catch (Exception e) {
