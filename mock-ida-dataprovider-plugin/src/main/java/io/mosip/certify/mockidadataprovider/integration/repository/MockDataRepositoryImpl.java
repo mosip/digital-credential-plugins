@@ -13,7 +13,7 @@ public class MockDataRepositoryImpl implements MockDataRepository {
     private EntityManager entityManager;
     @Override
     public Object[] getIdentityDataFromIndividualId(String id) {
-        String queryString = "select individual_id, identity_json from mock_identity where individual_id=:id";
+        String queryString = "select farmer_name, phone_number, dob, identity_json from farmer_identity where individual_id=:id";
         Query query = entityManager.createNativeQuery(queryString);
         query.setParameter("id", id);
         return (Object[]) query.getSingleResult();
