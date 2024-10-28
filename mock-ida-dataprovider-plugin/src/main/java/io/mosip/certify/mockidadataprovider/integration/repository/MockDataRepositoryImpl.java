@@ -5,8 +5,6 @@ import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-
 @Repository(value = "mockDataRepository")
 public class MockDataRepositoryImpl implements MockDataRepository {
     @PersistenceContext
