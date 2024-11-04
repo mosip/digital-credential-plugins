@@ -1,10 +1,10 @@
-package io.mosip.certify.mockidadataprovider.integration.service;
+package io.mosip.certify.mockpostgresdataprovider.integration.service;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.certify.api.exception.DataProviderExchangeException;
 import io.mosip.certify.api.spi.DataProviderPlugin;
-import io.mosip.certify.mockidadataprovider.integration.repository.MockDataRepository;
+import io.mosip.certify.mockpostgresdataprovider.integration.repository.MockDataRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,10 +14,10 @@ import org.springframework.stereotype.Component;
 import java.util.HashMap;
 import java.util.Map;
 
-@ConditionalOnProperty(value = "mosip.certify.integration.data-provider-plugin", havingValue = "MockIdaDataProviderPlugin")
+@ConditionalOnProperty(value = "mosip.certify.integration.data-provider-plugin", havingValue = "MockPostgresDataProviderPlugin")
 @Component
 @Slf4j
-public class MockIdaDataProviderPlugin implements DataProviderPlugin {
+public class MockPostgresDataProviderPlugin implements DataProviderPlugin {
 
     @Autowired
     private MockDataRepository mockDataRepository;

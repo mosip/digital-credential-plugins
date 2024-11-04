@@ -1,10 +1,8 @@
-package io.mosip.certify.mockidadataprovider.integration;
+package io.mosip.certify.mockpostgresdataprovider.integration;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.certify.api.exception.DataProviderExchangeException;
-import io.mosip.certify.mockidadataprovider.integration.repository.MockDataRepository;
-import io.mosip.certify.mockidadataprovider.integration.repository.MockDataRepositoryImpl;
-import io.mosip.certify.mockidadataprovider.integration.service.MockIdaDataProviderPlugin;
+import io.mosip.certify.mockpostgresdataprovider.integration.repository.MockDataRepository;
+import io.mosip.certify.mockpostgresdataprovider.integration.service.MockPostgresDataProviderPlugin;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Assert;
@@ -16,17 +14,16 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
 @RunWith(MockitoJUnitRunner.class)
-public class MockIdaDataProviderPluginTest {
+public class MockPostgresDataProviderPluginTest {
     @Mock
     MockDataRepository mockDataRepository;
 
     @InjectMocks
-    MockIdaDataProviderPlugin mockIdaDataProviderPlugin = new MockIdaDataProviderPlugin();
+    MockPostgresDataProviderPlugin mockIdaDataProviderPlugin = new MockPostgresDataProviderPlugin();
 
     @Before
     public void setup() {

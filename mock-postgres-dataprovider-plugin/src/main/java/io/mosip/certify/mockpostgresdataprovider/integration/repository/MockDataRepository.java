@@ -1,6 +1,5 @@
-package io.mosip.certify.mockidadataprovider.integration.repository;
+package io.mosip.certify.mockpostgresdataprovider.integration.repository;
 
-import java.util.List;
 
 public interface MockDataRepository {
     Object[] getIdentityDataFromIndividualId(String id);

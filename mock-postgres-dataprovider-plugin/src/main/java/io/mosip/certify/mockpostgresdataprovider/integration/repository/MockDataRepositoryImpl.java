@@ -1,4 +1,4 @@
-package io.mosip.certify.mockidadataprovider.integration.repository;
+package io.mosip.certify.mockpostgresdataprovider.integration.repository;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
