@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,24 +26,36 @@ public class MockPostgresDataProviderPlugin implements DataProviderPlugin {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private DataService dataService;
+
     @Override
     public JSONObject fetchData(Map<String, Object> identityDetails) throws DataProviderExchangeException {
         try {
             String individualId = (String) identityDetails.get("sub");
             if (individualId != null) {
-                Object[] mockData = mockDataRepository.getIdentityDataFromIndividualId(individualId);
-                Map<String, Object> mockDataMap = new HashMap<>();
+//                Object[] mockData = mockDataRepository.getIdentityDataFromIndividualId(individualId);
+//                Map<String, Object> mockDataMap = new HashMap<>();
+//                try {
+//                    mockDataMap = objectMapper.readValue(mockData[3].toString(), HashMap.class);
+//                    log.info("mock data map " + mockDataMap);
+//                } catch (Exception e) {
+//                    log.error("mock data not present");
+//                }
+//                JSONObject jsonRes = new JSONObject(mockDataMap);
+//                jsonRes.put("name", mockData[0].toString());
+//                jsonRes.put("phoneNumber", mockData[1].toString());
+//                jsonRes.put("dateOfBirth", mockData[2].toString());
+//                jsonRes.put("id", "https://vharsh.github.io/farmer.json#FarmerProfileCredential");
+//                return jsonRes;
+                JSONObject jsonRes;
                 try {
-                    mockDataMap = objectMapper.readValue(mockData[3].toString(), HashMap.class);
-                    log.info("mock data map " + mockDataMap);
-                } catch (Exception e) {
-                    log.error("mock data not present");
+                    jsonRes = dataService.processData(individualId);
+                    jsonRes.put("id", "https://vharsh.github.io/farmer.json#FarmerProfileCredential");
+                } catch (RuntimeException e) {
+                    throw new DataProviderExchangeException("Unable to find the required csv file.", e.getMessage());
                 }
-                JSONObject jsonRes = new JSONObject(mockDataMap);
-                jsonRes.put("name", mockData[0].toString());
-                jsonRes.put("phoneNumber", mockData[1].toString());
-                jsonRes.put("dateOfBirth", mockData[2].toString());
-                jsonRes.put("id", "https://vharsh.github.io/farmer.json#FarmerProfileCredential");
+
                 return jsonRes;
             }
         } catch (Exception e) {
