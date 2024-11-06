@@ -51,7 +51,7 @@ public class CSVReaderTest {
     }
 
     @Test
-    public void getJsonObjectByIdentifier_thenPass() throws JSONException {
+    public void getJsonObjectByValidIdentifier_thenPass() throws JSONException {
         Map<String, List<Map<String, String>>> data = new HashMap<>();
         data.put("1234567", List.of(Map.of("individualid", "1234567", "name", "test", "age", "40", "phone", "98765")));
         ReflectionTestUtils.setField(csvReader, "dataMap", data);
@@ -62,5 +62,18 @@ public class CSVReaderTest {
         Assert.assertEquals("test", jsonObject.get("name"));
         Assert.assertEquals("40", jsonObject.get("age"));
         Assert.assertEquals("98765", jsonObject.get("phone"));
+    }
+
+    @Test
+    public void getJsonObjectByInvalidIdentifier_thenFail() throws JSONException {
+        Map<String, List<Map<String, String>>> data = new HashMap<>();
+        data.put("1234567", List.of(Map.of("individualid", "1234567", "name", "test", "age", "40", "phone", "98765")));
+        ReflectionTestUtils.setField(csvReader, "dataMap", data);
+
+        try {
+            csvReader.getJsonObjectByIdentifier("12345678");
+        } catch (RuntimeException e) {
+            Assert.assertEquals("No record found in csv with the provided identifier", e.getMessage());
+        }
     }
 }
