@@ -8,9 +8,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ResourceUtils;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.client.RestTemplate;
 
@@ -47,9 +47,9 @@ public class DataProviderService {
         } else if (fileReference.startsWith("classpath:")) {
             try {
                 // usecase(local setup)
-                f = new ClassPathResource(fileReference).getFile();
+                f = ResourceUtils.getFile(fileReference);
             } catch (IOException e) {
-                throw new FileNotFoundException("File not found: " + fileReference);
+                throw new FileNotFoundException("File not found in the classpath: " + fileReference);
             }
         } else {
             // usecase(local setup)

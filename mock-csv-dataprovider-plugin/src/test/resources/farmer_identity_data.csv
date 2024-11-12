@@ -1,4 +1,4 @@
-individualid,farmername,phonenumber,dob,highesteducation,typeofhouse,numberofdependents,works,landarea,landownershiptype,primarycroptype,secondarycroptype,maritalstatus
+id,name,phoneNumber,dateOfBirth,highestEducation,typeOfHouse,numberOfDependents,works,landArea,landOwnershipType,primaryCropType,secondaryCropType,maritalStatus
 4567538768,John Doe,9876543210,1980-05-15,Bachelors Degree,Farmhouse,3,Full-time,50.5,Self-owned,Wheat,Vegetables,Married
 4567538769,Mary Smith,8765432109,1975-08-22,High School,Ranch,4,Full-time,25.75,Leased,Rice,Pulses,Married
 4567538770,Raj Patel,7654321098,1990-03-10,Primary Education,Cottage,2,Part-time,15.25,Family Owned,Cotton,Maize,Married
