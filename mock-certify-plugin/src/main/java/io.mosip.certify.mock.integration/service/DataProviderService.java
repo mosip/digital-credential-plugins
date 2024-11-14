@@ -49,7 +49,7 @@ public class DataProviderService {
                 // usecase(local setup)
                 f = ResourceUtils.getFile(fileReference);
             } catch (IOException e) {
-                throw new FileNotFoundException("File not found in the classpath: " + fileReference);
+                throw new FileNotFoundException("File not found in: " + fileReference);
             }
         } else {
             // usecase(local setup)
