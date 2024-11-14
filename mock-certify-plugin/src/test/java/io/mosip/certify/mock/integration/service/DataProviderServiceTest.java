@@ -1,17 +1,16 @@
-package io.mosip.certify.mockcsvdataprovider.integration;
+package io.mosip.certify.mock.integration.service;
 
 import io.mosip.certify.api.exception.DataProviderExchangeException;
-import io.mosip.certify.mockcsvdataprovider.integration.service.DataProviderService;
-import io.mosip.certify.mockcsvdataprovider.integration.utils.CSVReader;
 import net.javacrumbs.jsonunit.assertj.JsonAssertions;
+import io.mosip.certify.util.CSVReader;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
-import org.springframework.web.client.RestTemplate;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.web.client.RestTemplate;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DataProviderServiceTest {

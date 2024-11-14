@@ -1,4 +1,4 @@
-package io.mosip.certify.mockcsvdataprovider.integration.service;
+package io.mosip.certify.mock.integration.service;
 
 
 import io.mosip.certify.api.exception.DataProviderExchangeException;

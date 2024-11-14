@@ -1,4 +1,4 @@
-package io.mosip.certify.mockcsvdataprovider.integration.utils;
+package io.mosip.certify.util;
 
 import io.mosip.certify.api.exception.DataProviderExchangeException;
 import jakarta.annotation.PostConstruct;
@@ -9,12 +9,12 @@ import org.apache.commons.csv.CSVRecord;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.FileReader;
-import java.io.IOException; import java.util.*;
+import java.io.IOException;
+import java.util.*;
 
 @Component
 @Slf4j

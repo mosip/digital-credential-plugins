@@ -1,7 +1,7 @@
-package io.mosip.certify.mockcsvdataprovider.integration.service;
+package io.mosip.certify.mock.integration.service;
 
 import io.mosip.certify.api.exception.DataProviderExchangeException;
-import io.mosip.certify.mockcsvdataprovider.integration.utils.CSVReader;
+import io.mosip.certify.util.CSVReader;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONException;

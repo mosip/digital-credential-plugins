@@ -1,8 +1,6 @@
-package io.mosip.certify.mockcsvdataprovider.integration;
+package io.mosip.certify.mock.integration.service;
 
 import io.mosip.certify.api.exception.DataProviderExchangeException;
-import io.mosip.certify.mockcsvdataprovider.integration.service.DataProviderService;
-import io.mosip.certify.mockcsvdataprovider.integration.service.MockCSVDataProviderPlugin;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Assert;
@@ -14,7 +12,6 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.io.IOException;
 import java.util.Map;
 
 @RunWith(MockitoJUnitRunner.class)

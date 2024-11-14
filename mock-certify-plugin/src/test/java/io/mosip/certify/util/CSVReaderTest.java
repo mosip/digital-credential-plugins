@@ -1,7 +1,6 @@
-package io.mosip.certify.mockcsvdataprovider.integration;
+package io.mosip.certify.util;
 
 import io.mosip.certify.api.exception.DataProviderExchangeException;
-import io.mosip.certify.mockcsvdataprovider.integration.utils.CSVReader;
 import lombok.SneakyThrows;
 import org.assertj.core.api.Assertions;
 import org.json.JSONException;
