@@ -8,10 +8,13 @@ import io.mosip.certify.mockpostgresdataprovider.integration.repository.MockData
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @ConditionalOnProperty(value = "mosip.certify.integration.data-provider-plugin", havingValue = "MockPostgresDataProviderPlugin")
@@ -25,21 +28,22 @@ public class MockPostgresDataProviderPlugin implements DataProviderPlugin {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Value("${mosip.certify.postgres.data-provider.fields}")
+    private String tableFields;
+
     @Override
     public JSONObject fetchData(Map<String, Object> identityDetails) throws DataProviderExchangeException {
         try {
             String individualId = (String) identityDetails.get("sub");
             if (individualId != null) {
                 Object[] mockData = mockDataRepository.getIdentityDataFromIndividualId(individualId);
-//                Map<String, Object> mockDataMap = new HashMap<>();
-//                try {
-//                    mockDataMap = objectMapper.readValue(mockData[1].toString(), HashMap.class);
-//                    log.info("mock data map " + mockDataMap);
-//                } catch (Exception e) {
-//                    log.error("mock data not present");
-//                }
-                JSONObject jsonRes = new JSONObject(mockData[1].toString());
+                List<String> includeFields = Arrays.asList(tableFields.split(","));
+                JSONObject jsonRes = new JSONObject();
+                for(int i=1;i<mockData.length;i++) {
+                    jsonRes.put(includeFields.get(i), mockData[i]);
+                }
                 jsonRes.put("id", "https://piyush7034.github.io/statement.json#StatementCredential");
+                log.info("json response: " + jsonRes);
                 return jsonRes;
             }
         } catch (Exception e) {
