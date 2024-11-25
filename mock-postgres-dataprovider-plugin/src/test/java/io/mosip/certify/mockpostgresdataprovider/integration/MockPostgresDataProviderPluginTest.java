@@ -32,7 +32,7 @@ public class MockPostgresDataProviderPluginTest {
 
     @Before
     public void setup() {
-        ReflectionTestUtils.setField(mockPostgresDataProviderPlugin, "tableFields", "individualId,name,dateOfBirth,phoneNumber,email,landArea");
+        ReflectionTestUtils.setField(mockPostgresDataProviderPlugin, "tableFields", List.of("individualId", "name", "dateOfBirth", "phoneNumber", "email","landArea"));
         Object[] obj = new Object[]{"1234567", "John Doe", "01/01/1980", "012345", "john@test.com", 100.24};
         Mockito.when(mockDataRepository.getIdentityDataFromIndividualId("1234567")).thenReturn(obj);
     }
@@ -51,7 +51,6 @@ public class MockPostgresDataProviderPluginTest {
         Assert.assertEquals("012345", jsonObject.get("phoneNumber"));
         Assert.assertEquals("john@test.com", jsonObject.get("email"));
         Assert.assertEquals(100.24, jsonObject.get("landArea"));
-        Assert.assertEquals("https://piyush7034.github.io/statement.json#StatementCredential", jsonObject.get("id"));
     }
 
     @Test

@@ -28,8 +28,8 @@ public class MockPostgresDataProviderPlugin implements DataProviderPlugin {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @Value("${mosip.certify.postgres.data-provider.fields}")
-    private String tableFields;
+    @Value("#{'${mosip.certify.postgres.data-provider.fields}'.split(',')}")
+    private List<String> tableFields;
 
     @Override
     public JSONObject fetchData(Map<String, Object> identityDetails) throws DataProviderExchangeException {
@@ -37,13 +37,10 @@ public class MockPostgresDataProviderPlugin implements DataProviderPlugin {
             String individualId = (String) identityDetails.get("sub");
             if (individualId != null) {
                 Object[] mockData = mockDataRepository.getIdentityDataFromIndividualId(individualId);
-                List<String> includeFields = Arrays.asList(tableFields.split(","));
                 JSONObject jsonRes = new JSONObject();
                 for(int i=1;i<mockData.length;i++) {
-                    jsonRes.put(includeFields.get(i), mockData[i]);
+                    jsonRes.put(tableFields.get(i), mockData[i]);
                 }
-                jsonRes.put("id", "https://piyush7034.github.io/statement.json#StatementCredential");
-                log.info("json response: " + jsonRes);
                 return jsonRes;
             }
         } catch (Exception e) {
