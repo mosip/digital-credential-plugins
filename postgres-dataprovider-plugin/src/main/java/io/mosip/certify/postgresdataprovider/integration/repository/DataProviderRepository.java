@@ -1,6 +1,8 @@
 package io.mosip.certify.postgresdataprovider.integration.repository;
 
 
+import java.util.Map;
+
 public interface DataProviderRepository {
-    Object[] fetchDataFromIdentifier(String id, String queryString);
+    Map<String, Object> fetchQueryResult(String id, String queryString);
 }

@@ -25,28 +25,24 @@ public class PostgresDataProviderPlugin implements DataProviderPlugin {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @Value("#{${mosip.certify.postgres.scope-values}}")
-    private LinkedHashMap<String, LinkedHashMap<String, String>> scopeToQueryMapping;
+    @Value("#{${mosip.certify.data-provider-plugin.postgres.scope-query-mapping}}")
+    private LinkedHashMap<String, String> scopeQueryMapping;
 
     @Override
     public JSONObject fetchData(Map<String, Object> identityDetails) throws DataProviderExchangeException {
         try {
             String individualId = (String) identityDetails.get("sub");
             String scope = (String) identityDetails.get("scope");
-            LinkedHashMap<String, String> queryMap = scopeToQueryMapping.get(scope);
+            String queryString = scopeQueryMapping.get(scope);
             if (individualId != null) {
-                Object[] dataRecord = dataProviderRepository.fetchDataFromIdentifier(individualId,
-                            queryMap.get("query"));
-                List<String> includeFields = Arrays.asList(queryMap.get("fields").split(","));
-                JSONObject jsonRes = new JSONObject();
-                for(int i=0;i<dataRecord.length;i++) {
-                    jsonRes.put(includeFields.get(i), dataRecord[i]);
-                }
-                return jsonRes;
+                Map<String, Object> dataRecord = dataProviderRepository.fetchQueryResult(individualId,
+                            queryString);
+                JSONObject jsonResponse = new JSONObject(dataRecord);
+                return jsonResponse;
             }
         } catch (Exception e) {
             log.error("Failed to fetch json data for from data provider plugin", e);
-            throw new DataProviderExchangeException("ERROR_FETCHING_IDENTITY_DATA");
+            throw new DataProviderExchangeException("ERROR_FETCHING_DATA_RECORD_FROM_TABLE");
         }
         throw new DataProviderExchangeException("No Data Found");
     }

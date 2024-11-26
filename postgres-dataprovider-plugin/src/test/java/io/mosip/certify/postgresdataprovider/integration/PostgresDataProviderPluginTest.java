@@ -28,14 +28,11 @@ public class PostgresDataProviderPluginTest {
 
     @Before
     public void setup() {
-        LinkedHashMap<String, LinkedHashMap<String, String>> scopeMapping = new LinkedHashMap<>();
-        LinkedHashMap<String, String> queryMap = new LinkedHashMap<>();
-        queryMap.put("query", "testQuery");
-        queryMap.put("fields","individualId,name,dateOfBirth,phoneNumber,email,landArea");
-        scopeMapping.put("test_vc_ldp", queryMap);
-        ReflectionTestUtils.setField(postgresDataProviderPlugin, "scopeToQueryMapping", scopeMapping);
-        Object[] obj = new Object[]{"1234567", "John Doe", "01/01/1980", "012345", "john@test.com", 100.24};
-        Mockito.when(dataProviderRepository.fetchDataFromIdentifier("1234567", "testQuery")).thenReturn(obj);
+        LinkedHashMap<String, String> scopeQueryMapping = new LinkedHashMap<>();
+        scopeQueryMapping.put("test_vc_ldp", "test_query");
+        ReflectionTestUtils.setField(postgresDataProviderPlugin, "scopeQueryMapping", scopeQueryMapping);
+        Map<String, Object> queryResult = Map.of("id","1234567", "name", "John Doe", "dateOfBirth", "01/01/1980", "phoneNumber", "012345", "email", "john@test.com", "landArea", 100.24);
+        Mockito.when(dataProviderRepository.fetchQueryResult("1234567", "test_query")).thenReturn(queryResult);
     }
 
     @Test
@@ -59,7 +56,7 @@ public class PostgresDataProviderPluginTest {
         try {
             postgresDataProviderPlugin.fetchData(Map.of("sub", "12345678", "client_id", "CLIENT_ID", "scope", "test_vc_ldp"));
         } catch (DataProviderExchangeException e) {
-            Assert.assertEquals("ERROR_FETCHING_IDENTITY_DATA", e.getMessage());
+            Assert.assertEquals("ERROR_FETCHING_DATA_RECORD_FROM_TABLE", e.getMessage());
         }
     }
 
@@ -68,7 +65,7 @@ public class PostgresDataProviderPluginTest {
         try {
             postgresDataProviderPlugin.fetchData(Map.of("sub", "1234567", "client_id", "CLIENT_ID", "scope", "sample_vc_ldp"));
         } catch (DataProviderExchangeException e) {
-            Assert.assertEquals("ERROR_FETCHING_IDENTITY_DATA", e.getMessage());
+            Assert.assertEquals("ERROR_FETCHING_DATA_RECORD_FROM_TABLE", e.getMessage());
         }
     }
 }
