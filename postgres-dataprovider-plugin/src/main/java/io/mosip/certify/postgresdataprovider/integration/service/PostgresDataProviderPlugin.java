@@ -35,12 +35,12 @@ public class PostgresDataProviderPlugin implements DataProviderPlugin {
             String scope = (String) identityDetails.get("scope");
             LinkedHashMap<String, String> queryMap = scopeToQueryMapping.get(scope);
             if (individualId != null) {
-                Object[] mockData = dataProviderRepository.fetchDataFromIdentifier(individualId,
+                Object[] dataRecord = dataProviderRepository.fetchDataFromIdentifier(individualId,
                             queryMap.get("query"));
                 List<String> includeFields = Arrays.asList(queryMap.get("fields").split(","));
                 JSONObject jsonRes = new JSONObject();
-                for(int i=0;i<mockData.length;i++) {
-                    jsonRes.put(includeFields.get(i), mockData[i]);
+                for(int i=0;i<dataRecord.length;i++) {
+                    jsonRes.put(includeFields.get(i), dataRecord[i]);
                 }
                 return jsonRes;
             }
