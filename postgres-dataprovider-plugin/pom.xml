@@ -3,12 +3,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>io.mosip.certify</groupId>
-    <artifactId>mock-postgres-dataprovider-plugin</artifactId>
+    <artifactId>postgres-dataprovider-plugin</artifactId>
     <version>0.3.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
-    <name>mock-postgres-dataprovider-plugin</name>
-    <description>Mockup of a data provider plugin implementation through postgres db that is used to showcase the integration with certify</description>
+    <name>postgres-dataprovider-plugin</name>
+    <description>Data provider plugin implementation through postgres db that is used to showcase the integration with certify</description>
     <url>https://github.com/mosip/digital-credential-plugins</url>
 
     <licenses>

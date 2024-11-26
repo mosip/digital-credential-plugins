@@ -1,10 +1,8 @@
-package io.mosip.certify.mockpostgresdataprovider.integration;
+package io.mosip.certify.postgresdataprovider.integration;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.certify.api.exception.DataProviderExchangeException;
-import io.mosip.certify.mockpostgresdataprovider.integration.repository.MockDataRepository;
-import io.mosip.certify.mockpostgresdataprovider.integration.service.MockPostgresDataProviderPlugin;
+import io.mosip.certify.postgresdataprovider.integration.repository.DataProviderRepository;
+import io.mosip.certify.postgresdataprovider.integration.service.PostgresDataProviderPlugin;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Assert;
@@ -15,21 +13,18 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 @RunWith(MockitoJUnitRunner.class)
-public class MockPostgresDataProviderPluginTest {
+public class PostgresDataProviderPluginTest {
     @Mock
-    MockDataRepository mockDataRepository;
+    DataProviderRepository dataProviderRepository;
 
     @InjectMocks
-    MockPostgresDataProviderPlugin mockPostgresDataProviderPlugin = new MockPostgresDataProviderPlugin();
+    PostgresDataProviderPlugin postgresDataProviderPlugin = new PostgresDataProviderPlugin();
 
     @Before
     public void setup() {
@@ -38,14 +33,14 @@ public class MockPostgresDataProviderPluginTest {
         queryMap.put("query", "testQuery");
         queryMap.put("fields","individualId,name,dateOfBirth,phoneNumber,email,landArea");
         scopeMapping.put("test_vc_ldp", queryMap);
-        ReflectionTestUtils.setField(mockPostgresDataProviderPlugin, "scopeToQueryMapping", scopeMapping);
+        ReflectionTestUtils.setField(postgresDataProviderPlugin, "scopeToQueryMapping", scopeMapping);
         Object[] obj = new Object[]{"1234567", "John Doe", "01/01/1980", "012345", "john@test.com", 100.24};
-        Mockito.when(mockDataRepository.getIdentityDataFromIndividualId("1234567", "testQuery")).thenReturn(obj);
+        Mockito.when(dataProviderRepository.fetchDataFromIdentifier("1234567", "testQuery")).thenReturn(obj);
     }
 
     @Test
     public void fetchJsonDataWithValidIndividualId_thenPass() throws DataProviderExchangeException, JSONException {
-        JSONObject jsonObject = mockPostgresDataProviderPlugin.fetchData(Map.of("sub", "1234567", "client_id", "CLIENT_ID", "scope", "test_vc_ldp"));
+        JSONObject jsonObject = postgresDataProviderPlugin.fetchData(Map.of("sub", "1234567", "client_id", "CLIENT_ID", "scope", "test_vc_ldp"));
         Assert.assertNotNull(jsonObject);
         Assert.assertNotNull(jsonObject.get("name"));
         Assert.assertNotNull(jsonObject.get("dateOfBirth"));
@@ -62,7 +57,7 @@ public class MockPostgresDataProviderPluginTest {
     @Test
     public void fetchJsonDataWithInValidIndividualId_thenFail() throws DataProviderExchangeException, JSONException {
         try {
-            mockPostgresDataProviderPlugin.fetchData(Map.of("sub", "12345678", "client_id", "CLIENT_ID", "scope", "test_vc_ldp"));
+            postgresDataProviderPlugin.fetchData(Map.of("sub", "12345678", "client_id", "CLIENT_ID", "scope", "test_vc_ldp"));
         } catch (DataProviderExchangeException e) {
             Assert.assertEquals("ERROR_FETCHING_IDENTITY_DATA", e.getMessage());
         }
@@ -71,7 +66,7 @@ public class MockPostgresDataProviderPluginTest {
     @Test
     public void fetchJsonDataWithInValidScope_thenFail() throws DataProviderExchangeException, JSONException {
         try {
-            mockPostgresDataProviderPlugin.fetchData(Map.of("sub", "1234567", "client_id", "CLIENT_ID", "scope", "sample_vc_ldp"));
+            postgresDataProviderPlugin.fetchData(Map.of("sub", "1234567", "client_id", "CLIENT_ID", "scope", "sample_vc_ldp"));
         } catch (DataProviderExchangeException e) {
             Assert.assertEquals("ERROR_FETCHING_IDENTITY_DATA", e.getMessage());
         }

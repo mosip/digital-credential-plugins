@@ -1,10 +1,10 @@
-package io.mosip.certify.mockpostgresdataprovider.integration.service;
+package io.mosip.certify.postgresdataprovider.integration.service;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.certify.api.exception.DataProviderExchangeException;
 import io.mosip.certify.api.spi.DataProviderPlugin;
-import io.mosip.certify.mockpostgresdataprovider.integration.repository.MockDataRepository;
+import io.mosip.certify.postgresdataprovider.integration.repository.DataProviderRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,13 +14,13 @@ import org.springframework.stereotype.Component;
 
 import java.util.*;
 
-@ConditionalOnProperty(value = "mosip.certify.integration.data-provider-plugin", havingValue = "MockPostgresDataProviderPlugin")
+@ConditionalOnProperty(value = "mosip.certify.integration.data-provider-plugin", havingValue = "PostgresDataProviderPlugin")
 @Component
 @Slf4j
-public class MockPostgresDataProviderPlugin implements DataProviderPlugin {
+public class PostgresDataProviderPlugin implements DataProviderPlugin {
 
     @Autowired
-    private MockDataRepository mockDataRepository;
+    private DataProviderRepository dataProviderRepository;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -35,7 +35,7 @@ public class MockPostgresDataProviderPlugin implements DataProviderPlugin {
             String scope = (String) identityDetails.get("scope");
             LinkedHashMap<String, String> queryMap = scopeToQueryMapping.get(scope);
             if (individualId != null) {
-                Object[] mockData = mockDataRepository.getIdentityDataFromIndividualId(individualId,
+                Object[] mockData = dataProviderRepository.fetchDataFromIdentifier(individualId,
                             queryMap.get("query"));
                 List<String> includeFields = Arrays.asList(queryMap.get("fields").split(","));
                 JSONObject jsonRes = new JSONObject();
