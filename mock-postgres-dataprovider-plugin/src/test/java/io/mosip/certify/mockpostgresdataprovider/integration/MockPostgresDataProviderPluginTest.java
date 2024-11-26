@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -32,14 +33,19 @@ public class MockPostgresDataProviderPluginTest {
 
     @Before
     public void setup() {
-        ReflectionTestUtils.setField(mockPostgresDataProviderPlugin, "tableFields", List.of("individualId", "name", "dateOfBirth", "phoneNumber", "email","landArea"));
+        LinkedHashMap<String, LinkedHashMap<String, String>> scopeMapping = new LinkedHashMap<>();
+        LinkedHashMap<String, String> queryMap = new LinkedHashMap<>();
+        queryMap.put("query", "testQuery");
+        queryMap.put("fields","individualId,name,dateOfBirth,phoneNumber,email,landArea");
+        scopeMapping.put("test_vc_ldp", queryMap);
+        ReflectionTestUtils.setField(mockPostgresDataProviderPlugin, "scopeToQueryMapping", scopeMapping);
         Object[] obj = new Object[]{"1234567", "John Doe", "01/01/1980", "012345", "john@test.com", 100.24};
-        Mockito.when(mockDataRepository.getIdentityDataFromIndividualId("1234567")).thenReturn(obj);
+        Mockito.when(mockDataRepository.getIdentityDataFromIndividualId("1234567", "testQuery")).thenReturn(obj);
     }
 
     @Test
     public void fetchJsonDataWithValidIndividualId_thenPass() throws DataProviderExchangeException, JSONException {
-        JSONObject jsonObject = mockPostgresDataProviderPlugin.fetchData(Map.of("sub", "1234567", "client_id", "CLIENT_ID"));
+        JSONObject jsonObject = mockPostgresDataProviderPlugin.fetchData(Map.of("sub", "1234567", "client_id", "CLIENT_ID", "scope", "test_vc_ldp"));
         Assert.assertNotNull(jsonObject);
         Assert.assertNotNull(jsonObject.get("name"));
         Assert.assertNotNull(jsonObject.get("dateOfBirth"));
@@ -56,7 +62,16 @@ public class MockPostgresDataProviderPluginTest {
     @Test
     public void fetchJsonDataWithInValidIndividualId_thenFail() throws DataProviderExchangeException, JSONException {
         try {
-            mockPostgresDataProviderPlugin.fetchData(Map.of("sub", "12345678", "client_id", "CLIENT_ID"));
+            mockPostgresDataProviderPlugin.fetchData(Map.of("sub", "12345678", "client_id", "CLIENT_ID", "scope", "test_vc_ldp"));
+        } catch (DataProviderExchangeException e) {
+            Assert.assertEquals("ERROR_FETCHING_IDENTITY_DATA", e.getMessage());
+        }
+    }
+
+    @Test
+    public void fetchJsonDataWithInValidScope_thenFail() throws DataProviderExchangeException, JSONException {
+        try {
+            mockPostgresDataProviderPlugin.fetchData(Map.of("sub", "1234567", "client_id", "CLIENT_ID", "scope", "sample_vc_ldp"));
         } catch (DataProviderExchangeException e) {
             Assert.assertEquals("ERROR_FETCHING_IDENTITY_DATA", e.getMessage());
         }

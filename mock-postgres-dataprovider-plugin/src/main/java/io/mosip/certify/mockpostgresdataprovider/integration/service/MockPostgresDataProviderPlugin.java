@@ -12,10 +12,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @ConditionalOnProperty(value = "mosip.certify.integration.data-provider-plugin", havingValue = "MockPostgresDataProviderPlugin")
 @Component
@@ -28,18 +25,22 @@ public class MockPostgresDataProviderPlugin implements DataProviderPlugin {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @Value("#{'${mosip.certify.postgres.data-provider.fields}'.split(',')}")
-    private List<String> tableFields;
+    @Value("#{${mosip.certify.postgres.scope-values}}")
+    private LinkedHashMap<String, LinkedHashMap<String, String>> scopeToQueryMapping;
 
     @Override
     public JSONObject fetchData(Map<String, Object> identityDetails) throws DataProviderExchangeException {
         try {
             String individualId = (String) identityDetails.get("sub");
+            String scope = (String) identityDetails.get("scope");
+            LinkedHashMap<String, String> queryMap = scopeToQueryMapping.get(scope);
             if (individualId != null) {
-                Object[] mockData = mockDataRepository.getIdentityDataFromIndividualId(individualId);
+                Object[] mockData = mockDataRepository.getIdentityDataFromIndividualId(individualId,
+                            queryMap.get("query"));
+                List<String> includeFields = Arrays.asList(queryMap.get("fields").split(","));
                 JSONObject jsonRes = new JSONObject();
-                for(int i=1;i<mockData.length;i++) {
-                    jsonRes.put(tableFields.get(i), mockData[i]);
+                for(int i=0;i<mockData.length;i++) {
+                    jsonRes.put(includeFields.get(i), mockData[i]);
                 }
                 return jsonRes;
             }
