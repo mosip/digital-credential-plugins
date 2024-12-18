@@ -32,11 +32,11 @@ public class MockCSVDataProviderPlugin implements DataProviderPlugin {
     private String id;
     @Autowired
     private CSVReader csvReader;
-    @Value("${mosip.certify.mock.data-provider.csv-registry-uri}")
+    @Value("${mosip.certify.mock.data-provider.csv-registry-uri:}")
     private String csvRegistryURI;
-    @Value("${mosip.certify.mock.data-provider.csv.identifier-column}")
+    @Value("${mosip.certify.mock.data-provider.csv.identifier-column:}")
     private String identifierColumn;
-    @Value("#{'${mosip.certify.mock.data-provider.csv.data-columns}'.split(',')}")
+    @Value("#{'${mosip.certify.mock.data-provider.csv.data-columns:}'.split(',')}")
     private Set<String> dataColumns;
     @Autowired
     private RestTemplate restTemplate;
@@ -46,32 +46,35 @@ public class MockCSVDataProviderPlugin implements DataProviderPlugin {
      * @return
      */
     @PostConstruct
-    public File initialize() throws IOException, JSONException {
-        File filePath;
-        if (csvRegistryURI.startsWith("http")) {
-            // download the file to a path: usecase(docker, spring cloud config)
-            filePath = restTemplate.execute(csvRegistryURI, HttpMethod.GET, null, resp -> {
-                File ret = File.createTempFile("download", "tmp");
-                StreamUtils.copy(resp.getBody(), new FileOutputStream(ret));
-                return ret;
-            });
-        } else if (csvRegistryURI.startsWith("classpath:")) {
-            try {
+    public void initialize() throws IOException, JSONException {
+        try {
+            File filePath;
+            if (csvRegistryURI.startsWith("http")) {
+                // download the file to a path: usecase(docker, spring cloud config)
+                filePath = restTemplate.execute(csvRegistryURI, HttpMethod.GET, null, resp -> {
+                    File ret = File.createTempFile("download", "tmp");
+                    StreamUtils.copy(resp.getBody(), new FileOutputStream(ret));
+                    return ret;
+                });
+            } else if (csvRegistryURI.startsWith("classpath:")) {
+                try {
+                    // usecase(local setup)
+                    filePath = ResourceUtils.getFile(csvRegistryURI);
+                } catch (IOException e) {
+                    throw new FileNotFoundException("File not found in: " + csvRegistryURI);
+                }
+            } else {
                 // usecase(local setup)
-                filePath = ResourceUtils.getFile(csvRegistryURI);
-            } catch (IOException e) {
-                throw new FileNotFoundException("File not found in: " + csvRegistryURI);
+                filePath = new File(csvRegistryURI);
+                if (!filePath.isFile()) {
+                    // TODO: make sure it crashes the application
+                    throw new FileNotFoundException("File not found: " + csvRegistryURI);
+                }
             }
-        } else {
-            // usecase(local setup)
-            filePath = new File(csvRegistryURI);
-            if (!filePath.isFile()) {
-                // TODO: make sure it crashes the application
-                throw new FileNotFoundException("File not found: " + csvRegistryURI);
-            }
+            csvReader.readCSV(filePath, identifierColumn, dataColumns);
+        } catch (Exception e) {
+            log.error("Undefined CSV source. " + e.getMessage());
         }
-        csvReader.readCSV(filePath, identifierColumn, dataColumns);
-        return filePath;
     }
 
     @Override
