@@ -13,7 +13,7 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Base64;
 
 @Slf4j
-public class PKCS12Reader {
+public class KeyPairAndCertificateExtractor {
     public KeyPairAndCertificate extract(String keyCert) {
         String[] splitKeyCert = keyCert.split("\\|\\|");
         try {

@@ -24,6 +24,7 @@ import io.mosip.certify.api.dto.VCResult;
 import io.mosip.certify.api.exception.VCIExchangeException;
 import io.mosip.certify.api.spi.VCIssuancePlugin;
 import io.mosip.certify.api.util.ErrorConstants;
+import io.mosip.certify.constants.VCFormats;
 import io.mosip.certify.core.exception.CertifyException;
 import io.mosip.certify.util.UUIDGenerator;
 import io.mosip.esignet.core.dto.OIDCTransaction;
@@ -93,9 +94,6 @@ public class MockVCIssuancePlugin implements VCIssuancePlugin {
 	@Value("#{${mosip.certify.mock.vciplugin.vc-credential-contexts:{'https://www.w3.org/2018/credentials/v1','https://schema.org/'}}}")
 	private List<String> vcCredentialContexts;
 
-    @Value("${mosip.certify.mock.vciplugin.issuer.key-cert:empty}")
-	private String issuerKeyAndCertificate = null;
-
     private static final String ACCESS_TOKEN_HASH = "accessTokenHash";
 
 	public static final String UTC_DATETIME_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
@@ -110,7 +108,7 @@ public class MockVCIssuancePlugin implements VCIssuancePlugin {
 			VCResult<JsonLDObject> vcResult = new VCResult<>();
 			vcJsonLdObject = buildJsonLDWithLDProof(identityDetails.get(ACCESS_TOKEN_HASH).toString());
 			vcResult.setCredential(vcJsonLdObject);
-			vcResult.setFormat("ldp_vc");
+			vcResult.setFormat(VCFormats.LDP_VC);
 			return vcResult;
 		} catch (Exception e) {
 			log.error("Failed to build mock VC", e);
@@ -239,29 +237,6 @@ public class MockVCIssuancePlugin implements VCIssuancePlugin {
 	@Override
 	public VCResult<String> getVerifiableCredential(VCRequestDto vcRequestDto, String holderId,
 													Map<String, Object> identityDetails) throws VCIExchangeException {
-		String accessTokenHash = identityDetails.get(ACCESS_TOKEN_HASH).toString();
-        String documentNumber;
-        try {
-			documentNumber = getIndividualId(getUserInfoTransaction(accessTokenHash));
-		} catch (Exception e) {
-			log.error("Error getting documentNumber", e);
-			throw new VCIExchangeException(ErrorConstants.VCI_EXCHANGE_FAILED);
-		}
-
-		if(vcRequestDto.getFormat().equals("mso_mdoc")){
-			VCResult<String> vcResult = new VCResult<>();
-			String mdocVc = null;
-			try {
-				 mdocVc = new io.mosip.certify.mock.integration.mocks.MdocGenerator().generate(mockDataForMsoMdoc(documentNumber),holderId, issuerKeyAndCertificate);
-			} catch (Exception e) {
-                log.error("Exception on mdoc creation", e);
-				throw new VCIExchangeException(ErrorConstants.VCI_EXCHANGE_FAILED);
-			}
-			vcResult.setCredential(mdocVc);
-			vcResult.setFormat("mso_mdoc");
-			return  vcResult;
-		}
-        log.error("not implemented the format {}", vcRequestDto);
 		throw new VCIExchangeException(ErrorConstants.NOT_IMPLEMENTED);
 	}
 

@@ -9,7 +9,8 @@ import java.security.PublicKey;
 import java.util.Base64;
 
 
-public class JwkToKeyConverter {
+public class
+JwkToKeyConverter {
 
     public  PublicKey convertToPublicKey(String encodedData) throws Exception {
         String jwkJsonString = new String(Base64.getUrlDecoder().decode(encodedData), StandardCharsets.UTF_8);
