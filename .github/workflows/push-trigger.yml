@@ -52,7 +52,7 @@ jobs:
   sonar_analysis_sunbird-rc-esignet-integration-impl:
     needs: build-maven-sunbird-rc-esignet-integration-impl
     if: "${{  github.event_name != 'pull_request' }}"
-    uses: mosip/kattu/.github/workflows/maven-sonar-analysis.yml@master
+    uses: mosip/kattu/.github/workflows/maven-sonar-analysis-new.yml@develop
     with:
       SERVICE_LOCATION: ./sunbird-rc-esignet-integration-impl
     secrets:
