@@ -8,7 +8,6 @@ A plugin for Inji Certify that enables credential issuance using PostgreSQL data
 * Parameterized SQL query execution
 * Automatic JSON transformation of database results
 * Integration with Inji Certify for VC issuance
-* OIDC4VCI (OpenID for Verifiable Credential Issuance) compliant
 
 ## Prerequisites
 
