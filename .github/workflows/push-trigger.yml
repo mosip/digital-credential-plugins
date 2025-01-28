@@ -93,7 +93,7 @@ jobs:
   sonar_analysis:
     needs: build-maven-sunbird-rc-certify-integration-impl
     if: "${{  github.event_name != 'pull_request' }}"
-    uses: mosip/kattu/.github/workflows/maven-sonar-analysis.yml@master-java21
+    uses: mosip/kattu/.github/workflows/maven-sonar-analysis-new.yml@develop
     with:
       SERVICE_LOCATION: ./sunbird-rc-certify-integration-impl
     secrets:
@@ -134,7 +134,7 @@ jobs:
   sonar_analysis_mosip-identity-certify-plugin:
     needs: build-maven-mosip-identity-certify-plugin
     if: "${{  github.event_name != 'pull_request' }}"
-    uses: mosip/kattu/.github/workflows/maven-sonar-analysis.yml@master-java21
+    uses: mosip/kattu/.github/workflows/maven-sonar-analysis-new.yml@develop
     with:
       SERVICE_LOCATION: ./mosip-identity-certify-plugin
     secrets:
@@ -175,7 +175,7 @@ jobs:
   sonar_analysis_mock-certify-plugin:
     needs: build-maven-mock-certify-plugin
     if: "${{  github.event_name != 'pull_request' }}"
-    uses: mosip/kattu/.github/workflows/maven-sonar-analysis.yml@master-java21
+    uses: mosip/kattu/.github/workflows/maven-sonar-analysis-new.yml@develop
     with:
       SERVICE_LOCATION: ./mock-certify-plugin
     secrets:
@@ -216,7 +216,7 @@ jobs:
   sonar_analysis_postgres-dataprovider-plugin:
     needs: build-maven-postgres-dataprovider-plugin
     if: "${{  github.event_name != 'pull_request' }}"
-    uses: mosip/kattu/.github/workflows/maven-sonar-analysis.yml@master-java21
+    uses: mosip/kattu/.github/workflows/maven-sonar-analysis-new.yml@develop
     with:
       SERVICE_LOCATION: ./postgres-dataprovider-plugin
     secrets:
