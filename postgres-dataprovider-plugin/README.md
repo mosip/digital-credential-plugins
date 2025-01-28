@@ -1,3 +1,80 @@
+# PostgreSQL Data Provider Plugin for Inji Certify
+
+A plugin for Inji Certify that enables credential issuance using PostgreSQL data sources.
+
+## Features
+
+* Secure PostgreSQL database connectivity
+* Parameterized SQL query execution
+* Automatic JSON transformation of database results
+* Integration with Inji Certify for VC issuance
+* OIDC4VCI (OpenID for Verifiable Credential Issuance) compliant
+
+## Prerequisites
+
+* Java 21
+* PostgreSQL
+* Inji Certify v0.10.x
+
+
+## Workflow
+
+```mermaid
+sequenceDiagram
+    participant Client as 🌐 Client
+    box Inji Certify #E6F3FF
+    participant credential_endpoint as 🔗 Credential API
+    participant VelocityEngine as ⚙️ Template Engine
+    participant VCSigner as 🔏 VC Signer
+    participant TemplateDB as 💾 Template Store
+    end
+    box PostgreSQL Data Provider Plugin #FFE6E6
+    participant DataProvider as 🔌 Data Provider
+    end
+    participant PostgresDB as 💾 PostgreSQL DB
+
+    Client->>credential_endpoint: Request VC Issuance (OIDC4VCI)
+    
+    credential_endpoint->>DataProvider: Request Data (parameters)
+    
+    DataProvider->>PostgresDB: Establish Connection
+    PostgresDB-->>DataProvider: Connection Established
+    
+    DataProvider->>PostgresDB: Execute SQL Query
+    Note right of PostgresDB: Query processes<br/>with parameters
+    PostgresDB-->>DataProvider: Return Result Set
+    
+    DataProvider->>DataProvider: Convert to JSONObject
+    Note right of DataProvider: Transform DB results<br/>to JSON format
+    
+    DataProvider->>PostgresDB: Close Connection
+    DataProvider-->>credential_endpoint: Return JSONObject
+    
+    credential_endpoint->>TemplateDB: Fetch Credential Template
+    TemplateDB-->>credential_endpoint: Return Template
+    
+    credential_endpoint->>VelocityEngine: Process Template with JSON Data
+    VelocityEngine-->>credential_endpoint: Return unsigned Credential Data
+    
+    credential_endpoint->>VCSigner: Sign Credential
+    Note right of VCSigner: Sign VC
+    VCSigner-->>credential_endpoint: Return Signed VC
+    
+    credential_endpoint-->>Client: Return Final VC (OIDC4VCI)
+```
+
+1. **Client Request**: Initiate VC request via OIDC4VCI protocol
+2. **Data Fetching**:
+    * Credential API calls PostgreSQL Data Provider
+    * Secure connection established with database
+    * Parameterized SQL query executed
+    * Results converted to JSON format
+3. **Credential Generation**:
+    * Template engine merges data with credential template
+    * VC Signer adds cryptographic proofs
+4. **Response**: Signed VC returned to client
+
+
 ## Configuration docs for Postgres Plugin
 
 - Pre-requisites
