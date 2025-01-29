@@ -4,7 +4,6 @@ A plugin for Inji Certify that enables credential issuance using PostgreSQL data
 
 ## Features
 
-* Secure PostgreSQL database connectivity
 * Parameterized SQL query execution
 * Automatic JSON transformation of database results
 * Integration with Inji Certify for VC issuance
@@ -12,7 +11,7 @@ A plugin for Inji Certify that enables credential issuance using PostgreSQL data
 ## Prerequisites
 
 * Java 21
-* PostgreSQL
+* PostgreSQL (The database has to be same as the one used with Inji Certify)
 * Inji Certify v0.10.x
 
 
