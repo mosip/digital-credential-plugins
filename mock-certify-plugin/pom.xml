@@ -71,7 +71,7 @@
         <dependency>
             <groupId>io.mosip.esignet</groupId>
             <artifactId>esignet-core</artifactId>
-            <version>1.4.1</version>
+            <version>1.5.1</version>
             <exclusions>
                 <exclusion>
                     <groupId>*</groupId>
@@ -82,7 +82,7 @@
         <dependency>
             <groupId>io.mosip.esignet</groupId>
             <artifactId>esignet-integration-api</artifactId>
-            <version>1.4.1</version>
+            <version>1.5.1</version>
             <exclusions>
                 <exclusion>
                     <groupId>*</groupId>
