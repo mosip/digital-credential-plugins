@@ -1,4 +1,4 @@
-package io.mosip.certify.postgresdataprovider.integration;
+package io.mosip.certify.postgresdataprovider.integration.service;
 
 import io.mosip.certify.api.exception.DataProviderExchangeException;
 import io.mosip.certify.postgresdataprovider.integration.repository.DataProviderRepository;
@@ -15,6 +15,8 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -67,5 +69,23 @@ public class PostgresDataProviderPluginTest {
         } catch (DataProviderExchangeException e) {
             Assert.assertEquals("ERROR_FETCHING_DATA_RECORD_FROM_TABLE", e.getMessage());
         }
+    }
+
+    @Test(expected = DataProviderExchangeException.class)
+    public void fetchJsonDataWithNullIdentityDetails_thenFail() throws DataProviderExchangeException {
+        postgresDataProviderPlugin.fetchData(null);
+    }
+
+    @Test(expected = DataProviderExchangeException.class)
+    public void fetchJsonDataWithMissingSub_thenFail() throws DataProviderExchangeException {
+        postgresDataProviderPlugin.fetchData(Map.of("client_id", "CLIENT_ID", "scope", "test_vc_ldp"));
+    }
+
+    @Test(expected = DataProviderExchangeException.class)
+    public void fetchJsonDataWithNullQueryResult_thenFail() throws DataProviderExchangeException {
+        Mockito.when(dataProviderRepository.fetchQueryResult("1234567", "test_query"))
+                .thenReturn(null);
+
+        postgresDataProviderPlugin.fetchData(Map.of("sub", "1234567", "client_id", "CLIENT_ID", "scope", "test_vc_ldp"));
     }
 }

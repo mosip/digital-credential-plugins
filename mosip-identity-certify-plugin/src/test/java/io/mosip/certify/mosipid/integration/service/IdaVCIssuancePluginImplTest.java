@@ -5,11 +5,13 @@
  */
 package io.mosip.certify.mosipid.integration.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import foundation.identity.jsonld.JsonLDObject;
 import io.mosip.certify.api.dto.VCRequestDto;
 import io.mosip.certify.api.dto.VCResult;
 import io.mosip.certify.api.exception.VCIExchangeException;
+import io.mosip.certify.api.util.ErrorConstants;
 import io.mosip.certify.core.exception.CertifyException;
 import io.mosip.certify.mosipid.integration.dto.IdaResponseWrapper;
 import io.mosip.certify.mosipid.integration.dto.IdaVcExchangeRequest;
@@ -30,6 +32,7 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import javax.crypto.Cipher;
@@ -304,4 +307,83 @@ public class IdaVCIssuancePluginImplTest {
         }
     }
 
+    @Test
+    public void getVerifiableCredential_shouldThrowNotImplementedException() {
+        try {
+            idaVCIssuancePlugin.getVerifiableCredential(new VCRequestDto(), "holderId", Map.of());
+            Assert.fail();
+        } catch (VCIExchangeException e) {
+            Assert.assertEquals(ErrorConstants.NOT_IMPLEMENTED, e.getErrorCode());
+        }
+    }
+
+    @Test
+    public void getVerifiableCredentialWithLinkedDataProof_whenRestTemplateThrowsException_thenFail() throws Exception {
+        ReflectionTestUtils.setField(idaVCIssuancePlugin, "vciExchangeUrl", "http://example.com");
+
+        VCRequestDto vcRequestDto = new VCRequestDto();
+        vcRequestDto.setFormat("ldp_vc");
+
+        OIDCTransaction oidcTransaction = new OIDCTransaction();
+        oidcTransaction.setIndividualId("individualId");
+        oidcTransaction.setKycToken("kycToken");
+        oidcTransaction.setAuthTransactionId("authTransactionId");
+        oidcTransaction.setRelyingPartyId("relyingPartyId");
+
+        Mockito.when(vciTransactionHelper.getOAuthTransaction(Mockito.any())).thenReturn(oidcTransaction);
+        Mockito.when(objectMapper.writeValueAsString(Mockito.any())).thenReturn("jsonString");
+        Mockito.when(restTemplate.exchange(
+                Mockito.any(RequestEntity.class),
+                Mockito.any(ParameterizedTypeReference.class)
+        )).thenThrow(new RestClientException("Connection failed"));
+
+        try {
+            idaVCIssuancePlugin.getVerifiableCredentialWithLinkedDataProof(
+                    vcRequestDto, "holderId", Map.of("accessTokenHash", "ACCESS_TOKEN_HASH", "client_id", "CLIENT_ID"));
+            Assert.fail();
+        } catch (VCIExchangeException e) {
+            Assert.assertNotNull(e);
+        }
+    }
+
+    @Test
+    public void getVerifiableCredentialWithLinkedDataProof_whenObjectMapperThrowsException_thenFail() throws Exception {
+        ReflectionTestUtils.setField(idaVCIssuancePlugin, "vciExchangeUrl", "http://example.com");
+
+        VCRequestDto vcRequestDto = new VCRequestDto();
+        vcRequestDto.setFormat("ldp_vc");
+
+        OIDCTransaction oidcTransaction = new OIDCTransaction();
+        oidcTransaction.setIndividualId("individualId");
+        oidcTransaction.setKycToken("kycToken");
+        oidcTransaction.setAuthTransactionId("authTransactionId");
+        oidcTransaction.setRelyingPartyId("relyingPartyId");
+
+        Mockito.when(vciTransactionHelper.getOAuthTransaction(Mockito.any())).thenReturn(oidcTransaction);
+        Mockito.when(objectMapper.writeValueAsString(Mockito.any())).thenThrow(new JsonProcessingException("Error") {});
+
+        try {
+            idaVCIssuancePlugin.getVerifiableCredentialWithLinkedDataProof(
+                    vcRequestDto, "holderId", Map.of("accessTokenHash", "ACCESS_TOKEN_HASH", "client_id", "CLIENT_ID"));
+            Assert.fail();
+        } catch (VCIExchangeException e) {
+            Assert.assertNotNull(e);
+        }
+    }
+
+    @Test
+    public void getIndividualId_whenStoreIndividualIdFalse_shouldReturnNull() throws Exception {
+        ReflectionTestUtils.setField(idaVCIssuancePlugin, "storeIndividualId", false);
+        String result = idaVCIssuancePlugin.getIndividualId("test");
+        Assert.assertNull(result);
+    }
+
+    @Test
+    public void getIndividualId_whenSecureIndividualIdFalse_shouldReturnOriginalValue() throws Exception {
+        ReflectionTestUtils.setField(idaVCIssuancePlugin, "storeIndividualId", true);
+        ReflectionTestUtils.setField(idaVCIssuancePlugin, "secureIndividualId", false);
+        String expected = "test";
+        String result = idaVCIssuancePlugin.getIndividualId(expected);
+        Assert.assertEquals(expected, result);
+    }
 }

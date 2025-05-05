@@ -25,7 +25,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.when;
 
 
 @RunWith(MockitoJUnitRunner.class)
@@ -68,14 +69,14 @@ public class MockVCIssuancePluginTest {
         vcRequestDto.setType(Arrays.asList("VerifiableCredential", "MockVerifiableCredential"));
         vcRequestDto.setCredentialSubject(Map.of("subject1","subject1","subject2","subject2"));
 
-        Mockito.when(cacheManager.getCache(Mockito.anyString())).thenReturn(cache);
+        when(cacheManager.getCache(anyString())).thenReturn(cache);
     }
 
     @Test
     public void getVerifiableCredentialWithLinkedDataProof_withValidDetails_thenPass() throws VCIExchangeException {
         JWTSignatureResponseDto jwtSignatureResponseDto = new JWTSignatureResponseDto();
         jwtSignatureResponseDto.setJwtSignedData("test-jwt");
-        Mockito.when(signatureService.jwtSign(any())).thenReturn(jwtSignatureResponseDto);
+        when(signatureService.jwtSign(any())).thenReturn(jwtSignatureResponseDto);
         VCResult vcResult = mockVCIssuancePlugin.getVerifiableCredentialWithLinkedDataProof(vcRequestDto,"holderId",Map.of("accessTokenHash","ACCESS_TOKEN_HASH","client_id","CLIENT_ID"));
         Assert.assertNotNull(vcResult.getCredential());
         Assert.assertEquals(vcResult.getFormat(),"ldp_vc");
@@ -95,12 +96,32 @@ public class MockVCIssuancePluginTest {
     public void getVerifiableCredentialWithLinkedDataProof_withValidCredentialType() throws VCIExchangeException {
         JWTSignatureResponseDto jwtSignatureResponseDto = new JWTSignatureResponseDto();
         jwtSignatureResponseDto.setJwtSignedData("test-jwt");
-        Mockito.when(signatureService.jwtSign(any())).thenReturn(jwtSignatureResponseDto);
+        when(signatureService.jwtSign(any())).thenReturn(jwtSignatureResponseDto);
         VCResult vcResult = mockVCIssuancePlugin.getVerifiableCredentialWithLinkedDataProof(vcRequestDto,"holderId",Map.of("accessTokenHash","ACCESS_TOKEN_HASH","client_id","CLIENT_ID"));
         Assert.assertNotNull(vcResult.getCredential());
         JsonLDObject credential = (JsonLDObject) vcResult.getCredential();
         Assert.assertNotNull(credential.getTypes());
         List<String> expectedType = Arrays.asList("VerifiableCredential", "MockVerifiableCredential");
         Assert.assertEquals(expectedType, credential.getTypes());
+    }
+
+    @Test(expected = VCIExchangeException.class)
+    public void getVerifiableCredentialWithLinkedDataProof_whenBuildJsonLDFails_shouldThrowException() throws Exception {
+        // Setup transaction to return null individual data
+        OIDCTransaction transaction = new OIDCTransaction();
+        transaction.setIndividualId(null);
+        when(cache.get(anyString(), eq(OIDCTransaction.class))).thenReturn(transaction);
+
+        // This should cause the buildJsonLDWithLDProof to fail
+        mockVCIssuancePlugin.getVerifiableCredentialWithLinkedDataProof(
+                vcRequestDto,
+                "holderId",
+                Map.of("accessTokenHash", "ACCESS_TOKEN_HASH")
+        );
+    }
+
+    @Test(expected = VCIExchangeException.class)
+    public void getVerifiableCredential_shouldThrowNotImplemented() throws VCIExchangeException {
+        mockVCIssuancePlugin.getVerifiableCredential(vcRequestDto, "holderId", Map.of());
     }
 }

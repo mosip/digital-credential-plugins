@@ -82,4 +82,11 @@ public class CSVReaderTest {
             Assert.assertEquals("No record found in csv with the provided identifier", e.getMessage());
         }
     }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void readCSV_whenIdentifierColumnMissing_thenThrowException() throws IOException, JSONException {
+        File file = new File("src/test/resources/invalid_test.csv"); // contains no "individualId"
+        csvReader.readCSV(file, "individualId", dataColumns);
+    }
+
 }
