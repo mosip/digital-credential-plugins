@@ -7,6 +7,7 @@ import io.mosip.certify.api.dto.VCRequestDto;
 import io.mosip.certify.api.dto.VCResult;
 import io.mosip.certify.api.exception.VCIExchangeException;
 import io.mosip.certify.api.util.ErrorConstants;
+import io.mosip.certify.sunbirdrc.integration.dto.RegistrySearchRequestDto;
 import org.apache.velocity.Template;
 import org.apache.velocity.app.VelocityEngine;
 import org.junit.Assert;
@@ -341,5 +342,195 @@ public class SunbirdRCVCIssuancePluginTest {
         }catch (VCIExchangeException e){
             Assert.assertEquals(e.getErrorCode(),ErrorConstants.NOT_IMPLEMENTED);
         }
+    }
+
+    @Test
+    public void testRegistrySearchRequestDtoUsage() {
+        // Create an instance of RegistrySearchRequestDto
+        RegistrySearchRequestDto registrySearchRequestDto = new RegistrySearchRequestDto();
+
+        // Set values for the fields
+        registrySearchRequestDto.setOffset(0);
+        registrySearchRequestDto.setLimit(10);
+        Map<String, Map<String, String>> filters = new HashMap<>();
+        Map<String, String> filterCriteria = new HashMap<>();
+        filterCriteria.put("key", "value");
+        filters.put("filterKey", filterCriteria);
+        registrySearchRequestDto.setFilters(filters);
+
+        // Assert the values to ensure proper coverage
+        Assert.assertEquals(0, registrySearchRequestDto.getOffset());
+        Assert.assertEquals(10, registrySearchRequestDto.getLimit());
+        Assert.assertEquals(filters, registrySearchRequestDto.getFilters());
+        Assert.assertNotNull(registrySearchRequestDto.toString());
+        Assert.assertNotNull(registrySearchRequestDto.hashCode());
+    }
+
+    @Test
+    public void getVerifiableCredentialWithLinkedDataProof_SubIsNull_ThenFail() throws JsonProcessingException {
+        ReflectionTestUtils.setField(sunbirdRCVCIssuancePlugin,"issueCredentialUrl","https://test.com");
+        ReflectionTestUtils.setField(sunbirdRCVCIssuancePlugin,"enablePSUTBasedRegistrySearch",true);
+
+        Map<String,Map<String,String>> credentialTypeConfigMap = new HashMap<>();
+        credentialTypeConfigMap.put("InsuranceCredential",Map.of("registry-search-url","test"));
+
+        ReflectionTestUtils.setField(sunbirdRCVCIssuancePlugin,"credentialTypeConfigMap",credentialTypeConfigMap);
+        VCRequestDto vcRequestDto=new VCRequestDto();
+        List<String> contextList=List.of("https://www.w3.org/2018/credentials/examples/v1","https://www.w3.org/2018/credentials/v1");
+        vcRequestDto.setContext(contextList);
+        vcRequestDto.setFormat("test");
+        List<String> types=new ArrayList<>();
+        types.add("VerifiableCredential");
+        types.add("InsuranceCredential");
+        vcRequestDto.setType(types);
+
+        Map<String,Object> identityMap=new HashMap<>();
+
+        Map<String,Object> responseMap=Map.of("policyNumber","654321","dob","654321");
+        List<Map<String,Object>> responseList=List.of(responseMap);
+
+        Map<String,Object> mockChallengMap=new HashMap<>();
+        Map<String,Object> credentialSubjectMap=new HashMap<>();
+        mockChallengMap.put("@context",List.of("https://www.w3.org/2018/credentials/examples/v1","https://www.w3.org/2018/credentials/v1"));
+        mockChallengMap.put("credentialSubject",credentialSubjectMap);
+        Mockito.when(objectMapper.readValue(Mockito.anyString(),Mockito.eq(Map.class))).thenReturn(mockChallengMap);
+
+        Exception exception = Assert.assertThrows(VCIExchangeException.class, () -> {
+            sunbirdRCVCIssuancePlugin.getVerifiableCredentialWithLinkedDataProof(vcRequestDto, "holderId", identityMap);
+        });
+
+        Assert.assertEquals(ErrorConstants.VCI_EXCHANGE_FAILED, ((VCIExchangeException) exception).getErrorCode());
+    }
+
+    @Test
+    public void getVerifiableCredentialWithLinkedDataProof_ResponseIsNull_ThenFail() throws JsonProcessingException {
+        ReflectionTestUtils.setField(sunbirdRCVCIssuancePlugin,"issueCredentialUrl","https://test.com");
+        ReflectionTestUtils.setField(sunbirdRCVCIssuancePlugin,"enablePSUTBasedRegistrySearch",true);
+
+        Map<String,Map<String,String>> credentialTypeConfigMap = new HashMap<>();
+        credentialTypeConfigMap.put("InsuranceCredential",Map.of("registry-search-url","test"));
+
+        ReflectionTestUtils.setField(sunbirdRCVCIssuancePlugin,"credentialTypeConfigMap",credentialTypeConfigMap);
+        VCRequestDto vcRequestDto=new VCRequestDto();
+        List<String> contextList=List.of("https://www.w3.org/2018/credentials/examples/v1","https://www.w3.org/2018/credentials/v1");
+        vcRequestDto.setContext(contextList);
+        vcRequestDto.setFormat("test");
+        List<String> types=new ArrayList<>();
+        types.add("VerifiableCredential");
+        types.add("InsuranceCredential");
+        vcRequestDto.setType(types);
+
+        Map<String,Object> identityMap=new HashMap<>();
+        identityMap.put("sub","osid");
+
+        ResponseEntity<List<Map<String,Object>>>  responseEntity = new ResponseEntity(null, HttpStatus.OK);
+        Mockito.when(restTemplate.exchange(
+                Mockito.any(RequestEntity.class),
+                Mockito.eq(new ParameterizedTypeReference<List<Map<String,Object>>>() {}))).thenReturn(responseEntity);
+
+        Map<String,Object> mockChallengMap=new HashMap<>();
+        Map<String,Object> credentialSubjectMap=new HashMap<>();
+        mockChallengMap.put("@context",List.of("https://www.w3.org/2018/credentials/examples/v1","https://www.w3.org/2018/credentials/v1"));
+        mockChallengMap.put("credentialSubject",credentialSubjectMap);
+        Mockito.when(objectMapper.readValue(Mockito.anyString(),Mockito.eq(Map.class))).thenReturn(mockChallengMap);
+
+        Exception exception = Assert.assertThrows(VCIExchangeException.class, () -> {
+            sunbirdRCVCIssuancePlugin.getVerifiableCredentialWithLinkedDataProof(vcRequestDto, "holderId", identityMap);
+        });
+
+        Assert.assertEquals(ErrorConstants.VCI_EXCHANGE_FAILED, ((VCIExchangeException) exception).getErrorCode());
+    }
+
+    @Test
+    public void getVerifiableCredentialWithLinkedDataProof_IssueRequestIsNull_ThenFail() throws JsonProcessingException {
+        ReflectionTestUtils.setField(sunbirdRCVCIssuancePlugin,"issueCredentialUrl","https://test.com");
+        ReflectionTestUtils.setField(sunbirdRCVCIssuancePlugin,"enablePSUTBasedRegistrySearch",true);
+
+        Map<String,Map<String,String>> credentialTypeConfigMap = new HashMap<>();
+        credentialTypeConfigMap.put("InsuranceCredential",Map.of("registry-search-url","test"));
+
+        ReflectionTestUtils.setField(sunbirdRCVCIssuancePlugin,"credentialTypeConfigMap",credentialTypeConfigMap);
+        VCRequestDto vcRequestDto=new VCRequestDto();
+        List<String> contextList=List.of("https://www.w3.org/2018/credentials/examples/v1","https://www.w3.org/2018/credentials/v1");
+        vcRequestDto.setContext(contextList);
+        vcRequestDto.setFormat("test");
+        List<String> types=new ArrayList<>();
+        types.add("VerifiableCredential");
+        types.add("InsuranceCredential");
+        vcRequestDto.setType(types);
+
+        Map<String,Object> identityMap=new HashMap<>();
+        identityMap.put("sub","osid");
+
+        Map<String,Object> responseMap=Map.of("policyNumber","654321","dob","654321");
+        List<Map<String,Object>> responseList=List.of(responseMap);
+
+        ResponseEntity<List<Map<String,Object>>>  responseEntity = new ResponseEntity(responseList, HttpStatus.OK);
+        Mockito.when(restTemplate.exchange(
+                Mockito.any(RequestEntity.class),
+                Mockito.eq(new ParameterizedTypeReference<List<Map<String,Object>>>() {}))).thenReturn(responseEntity);
+
+        ResponseEntity<Map<String,Object>>  VcResponseEntity = new ResponseEntity(null, HttpStatus.OK);
+        Mockito.when(restTemplate.exchange(
+                Mockito.any(RequestEntity.class),
+                Mockito.eq(new ParameterizedTypeReference<Map<String,Object>>() {}))).thenReturn(VcResponseEntity);
+
+        Map<String,Object> mockChallengMap=new HashMap<>();
+        Map<String,Object> credentialSubjectMap=new HashMap<>();
+        mockChallengMap.put("@context",List.of("https://www.w3.org/2018/credentials/examples/v1","https://www.w3.org/2018/credentials/v1"));
+        mockChallengMap.put("credentialSubject",credentialSubjectMap);
+        Mockito.when(objectMapper.readValue(Mockito.anyString(),Mockito.eq(Map.class))).thenReturn(mockChallengMap);
+
+        Exception exception = Assert.assertThrows(VCIExchangeException.class, () -> {
+            sunbirdRCVCIssuancePlugin.getVerifiableCredentialWithLinkedDataProof(vcRequestDto, "holderId", identityMap);
+        });
+
+        Assert.assertEquals(ErrorConstants.VCI_EXCHANGE_FAILED, ((VCIExchangeException) exception).getErrorCode());
+    }
+
+    @Test
+    public void getVerifiableCredentialWithLinkedDataProof_MultipleResponses_ThenPass() throws JsonProcessingException, VCIExchangeException {
+        ReflectionTestUtils.setField(sunbirdRCVCIssuancePlugin,"issueCredentialUrl","https://test.com");
+        ReflectionTestUtils.setField(sunbirdRCVCIssuancePlugin,"enablePSUTBasedRegistrySearch",true);
+
+        Map<String,Map<String,String>> credentialTypeConfigMap = new HashMap<>();
+        credentialTypeConfigMap.put("InsuranceCredential",Map.of("registry-search-url","test"));
+
+        ReflectionTestUtils.setField(sunbirdRCVCIssuancePlugin,"credentialTypeConfigMap",credentialTypeConfigMap);
+        VCRequestDto vcRequestDto=new VCRequestDto();
+        List<String> contextList=List.of("https://www.w3.org/2018/credentials/examples/v1","https://www.w3.org/2018/credentials/v1");
+        vcRequestDto.setContext(contextList);
+        vcRequestDto.setFormat("test");
+        List<String> types=new ArrayList<>();
+        types.add("VerifiableCredential");
+        types.add("InsuranceCredential");
+        vcRequestDto.setType(types);
+
+        Map<String,Object> identityMap=new HashMap<>();
+        identityMap.put("sub","osid");
+
+        Map<String,Object> responseMap=Map.of("policyNumber","654321","dob","654321");
+        List<Map<String,Object>> responseList=List.of(responseMap, responseMap);
+
+        ResponseEntity<List<Map<String,Object>>>  responseEntity = new ResponseEntity(responseList, HttpStatus.OK);
+        Mockito.when(restTemplate.exchange(
+                Mockito.any(RequestEntity.class),
+                Mockito.eq(new ParameterizedTypeReference<List<Map<String,Object>>>() {}))).thenReturn(responseEntity);
+
+        Map<String,Object> vcResponseMap=Map.of("policyNumber","654321","dob","654321");
+
+        ResponseEntity<Map<String,Object>>  VcResponseEntity = new ResponseEntity(vcResponseMap, HttpStatus.OK);
+        Mockito.when(restTemplate.exchange(
+                Mockito.any(RequestEntity.class),
+                Mockito.eq(new ParameterizedTypeReference<Map<String,Object>>() {}))).thenReturn(VcResponseEntity);
+
+        Map<String,Object> mockChallengMap=new HashMap<>();
+        Map<String,Object> credentialSubjectMap=new HashMap<>();
+        mockChallengMap.put("@context",List.of("https://www.w3.org/2018/credentials/examples/v1","https://www.w3.org/2018/credentials/v1"));
+        mockChallengMap.put("credentialSubject",credentialSubjectMap);
+        Mockito.when(objectMapper.readValue(Mockito.anyString(),Mockito.eq(Map.class))).thenReturn(mockChallengMap);
+
+        VCResult<JsonLDObject> result= sunbirdRCVCIssuancePlugin.getVerifiableCredentialWithLinkedDataProof(vcRequestDto,"holderId",identityMap);
+        Assert.assertNotNull(result);
     }
 }
