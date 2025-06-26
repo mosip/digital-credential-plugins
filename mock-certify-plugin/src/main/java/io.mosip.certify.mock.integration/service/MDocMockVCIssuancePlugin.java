@@ -44,6 +44,9 @@ public class MDocMockVCIssuancePlugin implements VCIssuancePlugin {
     @Autowired
     private KeymanagerDBHelper dbHelper;
 
+    @Autowired
+    private MdocGenerator mdocGenerator;
+
     @Value("${mosip.certify.cache.security.secretkey.reference-id}")
     private String cacheSecretKeyRefId;
 
@@ -62,9 +65,6 @@ public class MDocMockVCIssuancePlugin implements VCIssuancePlugin {
     private static final String ACCESS_TOKEN_HASH = "accessTokenHash";
 
     public static final String CERTIFY_SERVICE_APP_ID = "CERTIFY_SERVICE";
-    
-    @Autowired
-    private MdocGenerator mdocGenerator;
 
     @Override
     public VCResult<JsonLDObject> getVerifiableCredentialWithLinkedDataProof(VCRequestDto vcRequestDto, String holderId, Map<String, Object> identityDetails) throws VCIExchangeException {
