@@ -62,6 +62,9 @@ public class MDocMockVCIssuancePlugin implements VCIssuancePlugin {
     private static final String ACCESS_TOKEN_HASH = "accessTokenHash";
 
     public static final String CERTIFY_SERVICE_APP_ID = "CERTIFY_SERVICE";
+    
+    @Autowired
+    private MdocGenerator mdocGenerator;
 
     @Override
     public VCResult<JsonLDObject> getVerifiableCredentialWithLinkedDataProof(VCRequestDto vcRequestDto, String holderId, Map<String, Object> identityDetails) throws VCIExchangeException {
@@ -84,7 +87,7 @@ public class MDocMockVCIssuancePlugin implements VCIssuancePlugin {
             VCResult<String> vcResult = new VCResult<>();
             String mdocVc;
             try {
-                mdocVc = new MdocGenerator().generate(mockDataForMsoMdoc(documentNumber),holderId, issuerKeyAndCertificate);
+                mdocVc = mdocGenerator.generate(mockDataForMsoMdoc(documentNumber),holderId, issuerKeyAndCertificate);
             } catch (Exception e) {
                 log.error("Exception on mdoc creation", e);
                 throw new VCIExchangeException(ErrorConstants.VCI_EXCHANGE_FAILED);
