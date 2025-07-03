@@ -44,6 +44,9 @@ public class MDocMockVCIssuancePlugin implements VCIssuancePlugin {
     @Autowired
     private KeymanagerDBHelper dbHelper;
 
+    @Autowired
+    private MdocGenerator mdocGenerator;
+
     @Value("${mosip.certify.cache.security.secretkey.reference-id}")
     private String cacheSecretKeyRefId;
 
@@ -84,7 +87,7 @@ public class MDocMockVCIssuancePlugin implements VCIssuancePlugin {
             VCResult<String> vcResult = new VCResult<>();
             String mdocVc;
             try {
-                mdocVc = new MdocGenerator().generate(mockDataForMsoMdoc(documentNumber),holderId, issuerKeyAndCertificate);
+                mdocVc = mdocGenerator.generate(mockDataForMsoMdoc(documentNumber),holderId, issuerKeyAndCertificate);
             } catch (Exception e) {
                 log.error("Exception on mdoc creation", e);
                 throw new VCIExchangeException(ErrorConstants.VCI_EXCHANGE_FAILED);

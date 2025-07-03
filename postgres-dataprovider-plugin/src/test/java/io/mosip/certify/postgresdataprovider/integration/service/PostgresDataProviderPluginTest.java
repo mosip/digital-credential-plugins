@@ -12,6 +12,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.exceptions.base.MockitoException;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -84,7 +85,7 @@ public class PostgresDataProviderPluginTest {
     @Test(expected = DataProviderExchangeException.class)
     public void fetchJsonDataWithNullQueryResult_thenFail() throws DataProviderExchangeException {
         Mockito.when(dataProviderRepository.fetchQueryResult("1234567", "test_query"))
-                .thenReturn(null);
+                .thenThrow(new MockitoException("Query execution failed"));
 
         postgresDataProviderPlugin.fetchData(Map.of("sub", "1234567", "client_id", "CLIENT_ID", "scope", "test_vc_ldp"));
     }
