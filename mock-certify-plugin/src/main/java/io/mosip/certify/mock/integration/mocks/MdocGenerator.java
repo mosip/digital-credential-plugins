@@ -10,6 +10,7 @@ import com.android.identity.mdoc.mso.MobileSecurityObjectGenerator;
 import com.android.identity.mdoc.util.MdocUtil;
 import com.android.identity.util.Timestamp;
 import io.mosip.certify.util.*;
+import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayOutputStream;
 import java.security.KeyPair;
@@ -20,6 +21,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 
+@Component
 public class MdocGenerator {
 
     public static final String NAMESPACE = "org.iso.18013.5.1";
