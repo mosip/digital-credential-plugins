@@ -69,9 +69,11 @@ public class MockMDocDataProviderPlugin implements DataProviderPlugin {
             log.debug("Returning mdoc claim data with system metadata: {}", claimData.toString(2));
             return claimData;
 
+        } catch (DataProviderExchangeException e) {
+            throw e;
         } catch (Exception e) {
             log.error("Failed to process mdoc data in MockMDocDataProviderPlugin", e);
-            throw new DataProviderExchangeException("ERROR_PROCESSING_MDOC_DATA: " + e);
+            throw new DataProviderExchangeException("ERROR_PROCESSING_MDOC_DATA: " + e.getMessage());
         }
     }
 }
