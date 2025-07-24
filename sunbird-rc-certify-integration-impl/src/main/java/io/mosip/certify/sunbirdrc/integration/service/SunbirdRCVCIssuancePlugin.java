@@ -131,11 +131,11 @@ public class SunbirdRCVCIssuancePlugin implements VCIssuancePlugin {
             throw new VCIExchangeException(ErrorConstants.VCI_EXCHANGE_FAILED);
         }
         List<String> types = vcRequestDto.getType();
-        if (types.isEmpty() || !types.get(0).equals("VerifiableCredential")) {
-            log.error("Invalid request: first item in type is not VerifiableCredential");
+        if (types.isEmpty() || !types.contains("VerifiableCredential")) {
+            log.error("Invalid request: VerifiableCredential not present in types");
             throw new VCIExchangeException(ErrorConstants.VCI_EXCHANGE_FAILED);
         }
-        types.remove(0);
+        types.remove("VerifiableCredential");
         String requestedCredentialType = String.join("-", types);
         //Check if the key is in the supported-credential-types
         if (!supportedCredentialTypes.contains(requestedCredentialType)) {
