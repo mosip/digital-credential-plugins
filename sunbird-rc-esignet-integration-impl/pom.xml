@@ -155,7 +155,7 @@
 		<repository>
 			<id>ossrh</id>
 			<url>https://central.sonatype.com/api/v1/publisher</url>
-		</repository>￼￼￼
+		</repository>
 	</distributionManagement>
 	<build>
 		<plugins>
