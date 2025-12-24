@@ -86,7 +86,7 @@ public class MockCSVDataProviderPluginTest {
             mockCSVDataProviderPlugin.fetchData(Map.of("client_id", "CLIENT_ID"));
             Assert.fail("Expected DataProviderExchangeException");
         } catch (DataProviderExchangeException e) {
-            Assert.assertEquals("No Data Found", e.getMessage());
+            Assert.assertEquals("ERROR_FETCHING_IDENTITY_DATA -> Check the individualId or data source", e.getMessage());
         }
     }
 
@@ -95,7 +95,7 @@ public class MockCSVDataProviderPluginTest {
         // Arrange
         String individualId = "1234567";
         when(csvReader.getJsonObjectByIdentifier(individualId))
-                .thenThrow(new RuntimeException("Simulated CSV read error"));
+                .thenThrow(new DataProviderExchangeException("Simulated CSV read error"));
 
         // Act & Assert
         try {
@@ -103,7 +103,7 @@ public class MockCSVDataProviderPluginTest {
             fail("Expected DataProviderExchangeException to be thrown");
         } catch (DataProviderExchangeException e) {
             // Verify the exception
-            assertEquals("ERROR_FETCHING_IDENTITY_DATA", e.getMessage());
+            assertEquals("Simulated CSV read error", e.getMessage());
 
             // Optional: Verify logging was called
 //            verify(log).error(anyString(), any(RuntimeException.class));

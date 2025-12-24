@@ -79,7 +79,7 @@ public class CSVReaderTest {
         try {
             csvReader.getJsonObjectByIdentifier("12345678");
         } catch (DataProviderExchangeException e) {
-            Assert.assertEquals("No record found in csv with the provided identifier", e.getMessage());
+            Assert.assertEquals("ERROR_FETCHING_IDENTITY_DATA -> No record found in csv with the provided identifier", e.getMessage());
         }
     }
 

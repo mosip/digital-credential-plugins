@@ -84,7 +84,7 @@ public class MockCSVDataProviderPlugin implements DataProviderPlugin {
             String individualId = (String) identityDetails.get("sub");
             if (individualId != null) {
                 JSONObject jsonRes = csvReader.getJsonObjectByIdentifier(individualId);
-                if(jsonRes.has("face")) {
+                if(jsonRes != null && jsonRes.has("face")) {
                     String imageData = jsonRes.getString("face");
                     String compressedImageData = compressImageData(imageData);
                     jsonRes.put("face", compressedImageData);
