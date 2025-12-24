@@ -10,7 +10,7 @@
 
       <groupId>io.mosip.certify</groupId>
       <artifactId>mock-certify-plugin</artifactId>
-      <version>0.5.0-SNAPSHOT</version>
+      <version>0.5.1-SNAPSHOT</version>
       <packaging>jar</packaging>
 
       <name>mock-certify-integration-impl</name>
@@ -65,7 +65,7 @@
         <dependency>
             <groupId>io.mosip.certify</groupId>
             <artifactId>certify-core</artifactId>
-            <version>0.12.0-SNAPSHOT</version>
+            <version>0.13.0</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -166,6 +166,17 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <dependency>
+            <groupId>io.mosip.image.compressor</groupId>
+            <artifactId>image-compressor</artifactId>
+            <version>0.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>io.mosip.kernel</groupId>
+            <artifactId>kernel-biometrics-api</artifactId>
+            <version>1.3.0</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <repositories>
@@ -245,6 +256,28 @@
                 <configuration>
                     <doclint>none</doclint>
                     <sourcepath>src/main/java</sourcepath>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version>
+                <configuration>
+                    <source>${maven.compiler.source}</source>
+                    <target>${maven.compiler.target}</target>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>1.18.30</version>
+                        </path>
+                        <!-- Add other processors here if the new dependency requires them -->
+                    </annotationProcessorPaths>
+                    <!-- Temporary diagnostic: disable annotation processing to confirm root cause
+                    <compilerArgs>
+                      <arg>-proc:none</arg>
+                    </compilerArgs>
+                    -->
                 </configuration>
             </plugin>
             <plugin>

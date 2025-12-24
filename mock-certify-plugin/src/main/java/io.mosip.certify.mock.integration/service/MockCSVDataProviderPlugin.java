@@ -4,6 +4,7 @@ package io.mosip.certify.mock.integration.service;
 import io.mosip.certify.api.exception.DataProviderExchangeException;
 import io.mosip.certify.api.spi.DataProviderPlugin;
 import io.mosip.certify.util.CSVReader;
+import io.mosip.certify.util.ImageCompressorUtil;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONException;
@@ -21,6 +22,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Base64;
 import java.util.Map;
 import java.util.Set;
 
@@ -32,6 +34,8 @@ public class MockCSVDataProviderPlugin implements DataProviderPlugin {
     private String id;
     @Autowired
     private CSVReader csvReader;
+    @Autowired
+    private ImageCompressorUtil imageCompressorUtil;
     @Value("${mosip.certify.mock.data-provider.csv-registry-uri}")
     private String csvRegistryURI;
     @Value("${mosip.certify.mock.data-provider.csv.identifier-column}")
@@ -80,12 +84,32 @@ public class MockCSVDataProviderPlugin implements DataProviderPlugin {
             String individualId = (String) identityDetails.get("sub");
             if (individualId != null) {
                 JSONObject jsonRes = csvReader.getJsonObjectByIdentifier(individualId);
+                if(jsonRes.has("face")) {
+                    String imageData = jsonRes.getString("face");
+                    String compressedImageData = compressImageData(imageData);
+                    jsonRes.put("face", compressedImageData);
+                }
                 return jsonRes;
             }
         } catch (Exception e) {
-            log.error("Failed to fetch json data for from data provider plugin", e);
-            throw new DataProviderExchangeException("ERROR_FETCHING_IDENTITY_DATA");
+            log.error(e.getMessage(), e);
+            throw e;
         }
-        throw new DataProviderExchangeException("No Data Found");
+        throw new DataProviderExchangeException("ERROR_FETCHING_IDENTITY_DATA", "Check the individualId or data source");
+    }
+
+    private String compressImageData(String imageData) throws DataProviderExchangeException {
+        try {
+            byte[] imageBytes = Base64.getDecoder().decode(imageData);
+            byte[] compressedBytes = imageCompressorUtil.compressImage(imageBytes);
+            if (compressedBytes.length > 1024) {
+                throw new DataProviderExchangeException("FACE_IMAGE_TOO_LARGE", "Compressed image exceeds 1 KB size limit.");
+            }
+            return Base64.getEncoder().encodeToString(compressedBytes);
+        } catch (Exception e) {
+            log.error("Image compression failed", e);
+            throw new DataProviderExchangeException("ERROR_COMPRESSING_IMAGE", "Failed to compress image data. Check the image format and other properties.");
+        }
+
     }
 }

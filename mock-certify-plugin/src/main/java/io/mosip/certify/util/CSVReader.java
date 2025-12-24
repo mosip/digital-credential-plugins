@@ -54,8 +54,8 @@ public class CSVReader {
     public JSONObject getJsonObjectByIdentifier(String identifier) throws DataProviderExchangeException, JSONException {
         JSONObject record = dataMap.get(identifier);
         if(record == null) {
-            log.error("No identifier found.");
-            throw new DataProviderExchangeException("No record found in csv with the provided identifier");
+            log.error("No record found in csv with the provided identifier");
+            throw new DataProviderExchangeException("ERROR_FETCHING_IDENTITY_DATA", "No record found in csv with the provided identifier");
         }
 
         return record;

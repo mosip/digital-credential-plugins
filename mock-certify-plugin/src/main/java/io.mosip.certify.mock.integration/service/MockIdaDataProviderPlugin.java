@@ -2,6 +2,7 @@ package io.mosip.certify.mock.integration.service;
 
 import io.mosip.certify.api.exception.DataProviderExchangeException;
 import io.mosip.certify.api.spi.DataProviderPlugin;
+import io.mosip.certify.util.ImageCompressorUtil;
 import io.mosip.kernel.core.keymanager.spi.KeyStore;
 import io.mosip.kernel.keymanagerservice.helper.KeymanagerDBHelper;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +21,9 @@ import java.util.*;
 public class MockIdaDataProviderPlugin implements DataProviderPlugin {
     @Autowired
     private RestTemplate restTemplate;
+
+    @Autowired
+    private ImageCompressorUtil imageCompressorUtil;
 
     @Value("${mosip.certify.mock.authenticator.get-identity-url}")
     private String getIdentityUrl;
@@ -55,5 +59,20 @@ public class MockIdaDataProviderPlugin implements DataProviderPlugin {
         }
 
         throw new DataProviderExchangeException("INVALID_ACCESS_TOKEN");
+    }
+
+    private String compressImageData(String imageData) throws DataProviderExchangeException {
+        try {
+            byte[] imageBytes = Base64.getDecoder().decode(imageData);
+            byte[] compressedBytes = imageCompressorUtil.compressImage(imageBytes);
+            if (compressedBytes.length > 1024) {
+                throw new DataProviderExchangeException("FACE_IMAGE_TOO_LARGE", "Compressed image exceeds 1 KB size limit.");
+            }
+            return Base64.getEncoder().encodeToString(compressedBytes);
+        } catch (Exception e) {
+            log.error("Image compression failed", e);
+            throw new DataProviderExchangeException("ERROR_COMPRESSING_IMAGE", "Failed to compress image data. Check the image format and other properties.");
+        }
+
     }
 }
