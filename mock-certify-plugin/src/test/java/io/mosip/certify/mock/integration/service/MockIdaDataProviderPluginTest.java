@@ -43,7 +43,7 @@ public class MockIdaDataProviderPluginTest {
         identityJson.put("locality", "locality");
         identityJson.put("region", "region");
         identityJson.put("postalCode", "postalCode");
-        identityJson.put("encodedPhoto", "encodedPhoto");
+        identityJson.put("encodedPhoto", "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAFCAYAAABW1IzHAAAAHklEQVQokWNgGPaAkZHxPyMj439sYrSQo51PBgsAALa0ECF30JSdAAAAAElFTkSuQmCC");
         Map<String, Object> response = new HashMap<>();
         response.put("response", identityJson);
         Mockito.when(restTemplate.getForObject(Mockito.anyString(), Mockito.any())).thenReturn(response);
@@ -75,7 +75,7 @@ public class MockIdaDataProviderPluginTest {
         try {
             mockDataProviderPlugin.fetchData(Map.of("accessTokenHash","test","client_id","CLIENT_ID"));
         } catch (DataProviderExchangeException e) {
-            Assert.assertEquals("INVALID_ACCESS_TOKEN", e.getMessage());
+            Assert.assertEquals("ERROR_FETCHING_IDENTITY_DATA -> Check the individualId or data source", e.getMessage());
         }
     }
 }

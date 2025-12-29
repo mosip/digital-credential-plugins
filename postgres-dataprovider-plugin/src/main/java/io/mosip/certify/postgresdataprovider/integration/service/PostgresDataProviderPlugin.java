@@ -49,7 +49,7 @@ public class PostgresDataProviderPlugin implements DataProviderPlugin {
 
                 if(jsonResponse.has("face")) {
                     String imageData = jsonResponse.getString("face");
-                    String compressedImageData = compressImageData(imageData);
+                    String compressedImageData = ImageCompressorUtil.compressImageData(imageData);
                     jsonResponse.put("face", compressedImageData);
                 }
                 return jsonResponse;
@@ -59,23 +59,8 @@ public class PostgresDataProviderPlugin implements DataProviderPlugin {
             throw e;
         } catch (Exception e) {
             log.error("Failed to fetch json data for from data provider plugin", e);
-            throw new DataProviderExchangeException("ERROR_FETCHING_DATA_RECORD_FROM_TABLE");
+            throw new DataProviderExchangeException("ERROR_FETCHING_DATA_RECORD_FROM_TABLE", e.getMessage());
         }
         throw new DataProviderExchangeException("No Data Found");
-    }
-
-    private String compressImageData(String imageData) throws DataProviderExchangeException {
-        try {
-            byte[] imageBytes = Base64.getDecoder().decode(imageData);
-            byte[] compressedBytes = imageCompressorUtil.compressImage(imageBytes);
-            if (compressedBytes.length > 1024) {
-                throw new DataProviderExchangeException("FACE_IMAGE_TOO_LARGE", "Compressed image exceeds 1 KB size limit.");
-            }
-            return Base64.getEncoder().encodeToString(compressedBytes);
-        } catch (Exception e) {
-            log.error("Image compression failed", e);
-            throw new DataProviderExchangeException("ERROR_COMPRESSING_IMAGE", "Failed to compress image data. Check the image format and other properties.");
-        }
-
     }
 }
