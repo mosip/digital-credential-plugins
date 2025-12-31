@@ -49,8 +49,10 @@ public class PostgresDataProviderPlugin implements DataProviderPlugin {
 
                 if(jsonResponse.has("face")) {
                     String imageData = jsonResponse.getString("face");
-                    String compressedImageData = ImageCompressorUtil.compressImageData(imageData);
-                    jsonResponse.put("face", compressedImageData);
+                    if(imageData != null && !imageData.isEmpty()) {
+                        String compressedImageData = ImageCompressorUtil.compressImageData(imageData);
+                        jsonResponse.put("face", compressedImageData);
+                    }
                 }
                 return jsonResponse;
             }
