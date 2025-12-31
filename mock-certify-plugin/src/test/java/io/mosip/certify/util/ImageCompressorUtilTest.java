@@ -25,11 +25,16 @@ public class ImageCompressorUtilTest {
     public void testCompressLargeImage_ShouldBeUnder1KB() throws Exception {
         // Create a large 500x500 image (definitely > 1KB)
         byte[] largeImage = createDummyImage(500, 500, "jpg");
+        String base64Image = Base64.getEncoder().encodeToString(largeImage);
 
-        byte[] result = ImageCompressorUtil.validateAndCompressFaceImage(largeImage, ".jpg");
+        // Use the public API instead of the private method
+        String result = ImageCompressorUtil.compressImageData(base64Image);
 
         assertNotNull(result);
-        assertTrue("Image should be compressed to under 1024 bytes", result.length <= 1024);
+        assertFalse("Result should not be a data URL", result.startsWith("data:"));
+
+        byte[] decoded = Base64.getDecoder().decode(result);
+        assertTrue("Image should be compressed to under 1024 bytes", decoded.length <= 1024);
     }
 
     @Test
@@ -64,7 +69,10 @@ public class ImageCompressorUtilTest {
     @Test(expected = DataProviderExchangeException.class)
     public void testCompressInvalidImage_ShouldThrowException() throws Exception {
         byte[] invalidData = "not-an-image".getBytes();
-        ImageCompressorUtil.validateAndCompressFaceImage(invalidData, ".jpg");
+        String base64Invalid = Base64.getEncoder().encodeToString(invalidData);
+
+        // Use public API; invalid image bytes encoded as Base64 should trigger the DataProviderExchangeException
+        ImageCompressorUtil.compressImageData(base64Invalid);
     }
 
     @Test

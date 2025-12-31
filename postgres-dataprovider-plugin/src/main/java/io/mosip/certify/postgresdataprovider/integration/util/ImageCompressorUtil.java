@@ -19,7 +19,7 @@ public class ImageCompressorUtil {
 
     private static final int TARGET_SIZE = 1024;
 
-    public static byte[] validateAndCompressFaceImage(byte[] imageBytes, String extension) throws Exception {
+    private static byte[] validateAndCompressFaceImage(byte[] imageBytes, String extension) throws Exception {
         final int TARGET_SIZE_BYTES = 1024; // 1 KB
 
         Mat src = Imgcodecs.imdecode(new MatOfByte(imageBytes), Imgcodecs.IMREAD_UNCHANGED);
@@ -79,9 +79,7 @@ public class ImageCompressorUtil {
         }
     }
 
-
     public static String compressImageData(String imageData) throws Exception {
-
         boolean isDataUrl = imageData != null && imageData.startsWith("data:");
         String base64;
         String mimeType = null;

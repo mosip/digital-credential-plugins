@@ -24,15 +24,6 @@ public class PostgresDataProviderPlugin implements DataProviderPlugin {
     @Autowired
     private DataProviderRepository dataProviderRepository;
 
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    @Autowired
-    private Environment env;
-
-    @Autowired
-    ImageCompressorUtil imageCompressorUtil;
-
     @Value("#{${mosip.certify.data-provider-plugin.postgres.scope-query-mapping}}")
     private LinkedHashMap<String, String> scopeQueryMapping;
 
