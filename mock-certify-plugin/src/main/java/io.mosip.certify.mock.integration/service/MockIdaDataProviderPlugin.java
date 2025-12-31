@@ -22,9 +22,6 @@ public class MockIdaDataProviderPlugin implements DataProviderPlugin {
     @Autowired
     private RestTemplate restTemplate;
 
-//    @Autowired
-//    private ImageCompressorUtil imageCompressorUtil;
-
     @Value("${mosip.certify.mock.authenticator.get-identity-url}")
     private String getIdentityUrl;
 
@@ -50,11 +47,12 @@ public class MockIdaDataProviderPlugin implements DataProviderPlugin {
                 jsonRes.put("province", res.get("locality"));
                 jsonRes.put("region", res.get("region"));
                 jsonRes.put("postalCode", res.get("postalCode"));
-                jsonRes.put("face", res.get("encodedPhoto"));
-                if(res.containsKey("encodedPhoto")) {
+                if(res.containsKey("encodedPhoto") && res.get("encodedPhoto") != null) {
                     String imageData = res.get("encodedPhoto").toString();
-                    String compressedImageData = ImageCompressorUtil.compressImageData(imageData);
-                    jsonRes.put("face", compressedImageData);
+                    if(!imageData.isEmpty()) {
+                        String compressedImageData = ImageCompressorUtil.compressImageData(imageData);
+                        jsonRes.put("face", compressedImageData);
+                    }
                 }
                 return jsonRes;
             }

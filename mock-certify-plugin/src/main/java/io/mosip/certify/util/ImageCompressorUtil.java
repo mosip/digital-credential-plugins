@@ -20,7 +20,6 @@ public class ImageCompressorUtil {
     private static final int TARGET_SIZE = 1024;
 
     public static byte[] validateAndCompressFaceImage(byte[] imageBytes, String extension) throws Exception {
-        final int TARGET_SIZE_BYTES = 1024; // 1 KB
 
         Mat src = Imgcodecs.imdecode(new MatOfByte(imageBytes), Imgcodecs.IMREAD_UNCHANGED);
         if (src.empty()) {
@@ -65,7 +64,7 @@ public class ImageCompressorUtil {
                 buf.release();
                 params.release();
 
-                if (result.length <= TARGET_SIZE_BYTES) {
+                if (result.length <= TARGET_SIZE) {
                     return result;
                 }
 
