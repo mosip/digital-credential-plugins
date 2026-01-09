@@ -13,7 +13,7 @@ import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Component;
 
 @Component
-@ConditionalOnProperty(value = "mosip.certify.integration.vci-plugin", havingValue = "IdaVCIssuancePluginImpl")
+@ConditionalOnProperty(value = "mosip.certify.integration.data-provider-plugin", havingValue = "IdaDataProviderPluginImpl")
 public class VCITransactionHelper {
 
 	@Autowired
