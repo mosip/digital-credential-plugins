@@ -13,17 +13,20 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+
 import java.nio.charset.StandardCharsets;
 
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Base64;
+import java.util.*;
+import java.util.stream.Collectors;
 
 
 @Service
 @Slf4j
-@ConditionalOnProperty(value = "mosip.certify.integration.vci-plugin", havingValue = "IdaVCIssuancePluginImpl")
+@ConditionalOnProperty(value = "mosip.certify.integration.data-provider-plugin", havingValue = "IdaDataProviderPluginImpl")
 public class HelperService {
 
     public static final String UTC_DATETIME_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
@@ -42,7 +45,7 @@ public class HelperService {
         JWTSignatureRequestDto jwtSignatureRequestDto = new JWTSignatureRequestDto();
         jwtSignatureRequestDto.setApplicationId(OIDC_PARTNER_APP_ID);
         jwtSignatureRequestDto.setReferenceId("");
-        jwtSignatureRequestDto.setIncludePayload(false);
+        jwtSignatureRequestDto.setIncludePayload(true);
         jwtSignatureRequestDto.setIncludeCertificate(true);
         jwtSignatureRequestDto.setDataToSign(HelperService.b64Encode(request));
         JWTSignatureResponseDto responseDto = signatureService.jwtSign(jwtSignatureRequestDto);
@@ -60,4 +63,18 @@ public class HelperService {
         return urlSafeEncoder.encodeToString(value.getBytes(StandardCharsets.UTF_8));
     }
 
+    //Converts an array of two-letter language codes to their corresponding ISO 639-2/T language codes.
+    protected List<String> convertLangCodesToISO3LanguageCodes(String[] langCodes) {
+        if(langCodes == null || langCodes.length == 0)
+            return List.of();
+        return Arrays.stream(langCodes)
+                .map(langCode -> {
+                    try {
+                        return StringUtils.isEmpty(langCode) ? null : new Locale(langCode).getISO3Language();
+                    } catch (MissingResourceException ex) {}
+                    return null;
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+    }
 }

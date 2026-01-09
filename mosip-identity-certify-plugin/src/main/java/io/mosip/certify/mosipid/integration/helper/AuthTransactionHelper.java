@@ -27,7 +27,7 @@ import java.time.LocalDateTime;
 
 @Component
 @Slf4j
-@ConditionalOnProperty(value = "mosip.certify.integration.vci-plugin", havingValue = "IdaVCIssuancePluginImpl")
+@ConditionalOnProperty(value = "mosip.certify.integration.data-provider-plugin", havingValue = "IdaDataProviderPluginImpl")
 public class AuthTransactionHelper {
 	
     private static final String AUTH_TOKEN_CACHE = "authtokens";
