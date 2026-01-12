@@ -248,7 +248,7 @@ public class IdaDataProviderPluginImpl implements DataProviderPlugin {
     }
 
     /**
-     * Set the verfied and unVerified consented claims to {@link IdaKycExchangeRequest} object
+     * Set the verified and unVerified consented claims to {@link IdaKycExchangeRequest} object
      * @param kycExchangeDto {@link KycExchangeDto}
      * @param idaKycExchangeRequest {@link IdaKycExchangeRequest}
      */
