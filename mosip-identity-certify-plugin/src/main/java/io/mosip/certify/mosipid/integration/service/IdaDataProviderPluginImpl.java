@@ -83,6 +83,9 @@ public class IdaDataProviderPluginImpl implements DataProviderPlugin {
     @Value("#{'${mosip.certify.ida.kyc-exchange.accepted-claims}'.split(',')}")
     private List<String> kycExchangeAcceptedClaims;
 
+    @Value("${mosip.certify.ida.kyc-exchange.accepted-locales:en}")
+    private String[] kycAcceptedLocales;
+
     @Autowired
     private ObjectMapper objectMapper;
 
@@ -108,10 +111,9 @@ public class IdaDataProviderPluginImpl implements DataProviderPlugin {
         try {
             KycExchangeResult kycExchangeResult = doKycExchange(identityDetails);
             if(kycExchangeResult != null) {
+                log.info("Kyc Exchange Success.");
                 String encryptedKyc = kycExchangeResult.getEncryptedKyc();
-                log.info("Kyc exchange result: {}", kycExchangeResult.getEncryptedKyc());
                 Map<String, Object> claims = decodeClaimsFromJwt(encryptedKyc);
-                log.info("Jwt Claims: {}", claims);
 
                 return new JSONObject(claims);
             }
@@ -124,7 +126,7 @@ public class IdaDataProviderPluginImpl implements DataProviderPlugin {
             log.error("ERROR_FETCHING_KYC_DATA. " +  e.getMessage());
             throw new DataProviderExchangeException("ERROR_FETCHING_KYC_DATA", e.getMessage());
         }
-        throw new DataProviderExchangeException("No data found for kyc exchange");
+        throw new DataProviderExchangeException("ERROR_FETCHING_KYC_DATA", "No data found for kyc exchange");
     }
 
     private KycExchangeDto buildKycExchangeDto(OIDCTransaction transaction) throws Exception {
@@ -134,9 +136,8 @@ public class IdaDataProviderPluginImpl implements DataProviderPlugin {
         kycExchangeDto.setIndividualId(individualId);
         kycExchangeDto.setTransactionId(transaction.getAuthTransactionId());
         kycExchangeDto.setKycToken(transaction.getKycToken());
-        // Todo: Take this list as config
         kycExchangeDto.setAcceptedClaims(kycExchangeAcceptedClaims);
-        kycExchangeDto.setClaimsLocales(new String[]{"en"});
+        kycExchangeDto.setClaimsLocales(kycAcceptedLocales);
         kycExchangeDto.setUserInfoResponseType(null);
 
         log.info("KYC exchange DTO built: {}", kycExchangeDto);
