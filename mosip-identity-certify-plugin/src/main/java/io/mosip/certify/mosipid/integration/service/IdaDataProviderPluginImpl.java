@@ -80,6 +80,9 @@ public class IdaDataProviderPluginImpl implements DataProviderPlugin {
     @Value("${mosip.certify.authenticator.ida.secret-key}")
     private String secretKey;
 
+    @Value("#{'${mosip.certify.ida.kyc-exchange.accepted-claims}'.split(',')}")
+    private List<String> kycExchangeAcceptedClaims;
+
     @Autowired
     private ObjectMapper objectMapper;
 
@@ -132,7 +135,7 @@ public class IdaDataProviderPluginImpl implements DataProviderPlugin {
         kycExchangeDto.setTransactionId(transaction.getAuthTransactionId());
         kycExchangeDto.setKycToken(transaction.getKycToken());
         // Todo: Take this list as config
-        kycExchangeDto.setAcceptedClaims(List.of("fullName", "dateOfBirth", "gender", "region", "city", "postalCode", "phoneNumber", "UIN", "VID"));
+        kycExchangeDto.setAcceptedClaims(kycExchangeAcceptedClaims);
         kycExchangeDto.setClaimsLocales(new String[]{"en"});
         kycExchangeDto.setUserInfoResponseType(null);
 
