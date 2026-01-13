@@ -58,7 +58,7 @@ public class IdaVCIssuancePluginImplTest {
     RestTemplate restTemplate;
 
     @Mock
-    HelperService helperService;
+    VCIHelperService helperService;
 
     @Mock
     KeymanagerDBHelper keymanagerDBHelper;

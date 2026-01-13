@@ -48,6 +48,7 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @Slf4j
 @ConditionalOnProperty(value = "mosip.certify.integration.vci-plugin", havingValue = "IdaVCIssuancePluginImpl")
+@Deprecated
 public class IdaVCIssuancePluginImpl implements VCIssuancePlugin {
 	private static final String CLIENT_ID = "client_id";
 	private static final String ACCESS_TOKEN_HASH = "accessTokenHash";
@@ -64,7 +65,7 @@ public class IdaVCIssuancePluginImpl implements VCIssuancePlugin {
 	private RestTemplate restTemplate;
 
 	@Autowired
-	HelperService helperService;
+	VCIHelperService helperService;
 
 	@Autowired
 	private KeyStore keyStore;

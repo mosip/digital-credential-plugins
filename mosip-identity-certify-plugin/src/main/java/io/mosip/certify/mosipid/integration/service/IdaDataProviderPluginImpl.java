@@ -1,13 +1,11 @@
 package io.mosip.certify.mosipid.integration.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.certify.api.exception.DataProviderExchangeException;
 import io.mosip.certify.api.spi.DataProviderPlugin;
 import io.mosip.certify.mosipid.integration.dto.*;
-import io.mosip.certify.mosipid.integration.helper.VCITransactionHelper;
+import io.mosip.certify.mosipid.integration.helper.TransactionHelper;
 import io.mosip.esignet.api.dto.*;
 import io.mosip.esignet.api.exception.KycExchangeException;
 import io.mosip.esignet.core.dto.OIDCTransaction;
@@ -15,7 +13,6 @@ import io.mosip.kernel.core.keymanager.spi.KeyStore;
 import io.mosip.kernel.keymanagerservice.constant.KeymanagerConstant;
 import io.mosip.kernel.keymanagerservice.entity.KeyAlias;
 import io.mosip.kernel.keymanagerservice.helper.KeymanagerDBHelper;
-import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -36,8 +33,6 @@ import java.security.Key;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
-
-import static io.mosip.esignet.core.constants.Constants.VERIFIED_CLAIMS;
 
 @Component
 @Slf4j
@@ -62,9 +57,6 @@ public class IdaDataProviderPluginImpl implements DataProviderPlugin {
     @Value("${mosip.certify.ida.kyc-exchange-id:mosip.identity.kycexchange}")
     private String kycExchangeId;
 
-    @Value("${mosip.certify.ida.vci-exchange-version}")
-    private String vciExchangeVersion;
-
     @Value("${mosip.certify.cache.secure.individual-id}")
     private boolean secureIndividualId;
 
@@ -76,9 +68,6 @@ public class IdaDataProviderPluginImpl implements DataProviderPlugin {
 
     @Value("${mosip.certify.cache.security.secretkey.reference-id}")
     private String cacheSecretKeyRefId;
-
-    @Value("${mosip.certify.authenticator.ida.secret-key}")
-    private String secretKey;
 
     @Value("#{'${mosip.certify.ida.kyc-exchange.accepted-claims}'.split(',')}")
     private List<String> kycExchangeAcceptedClaims;
@@ -102,7 +91,7 @@ public class IdaDataProviderPluginImpl implements DataProviderPlugin {
     private KeymanagerDBHelper dbHelper;
 
     @Autowired
-    VCITransactionHelper vciTransactionHelper;
+    TransactionHelper transactionHelper;
 
     private Base64.Decoder urlSafeDecoder = Base64.getUrlDecoder();
 
@@ -140,7 +129,7 @@ public class IdaDataProviderPluginImpl implements DataProviderPlugin {
         kycExchangeDto.setClaimsLocales(kycAcceptedLocales);
         kycExchangeDto.setUserInfoResponseType(null);
 
-        log.info("KYC exchange DTO built: {}", kycExchangeDto);
+        log.info("Built the KYC exchange DTO");
 
         return kycExchangeDto;
     }
@@ -188,15 +177,15 @@ public class IdaDataProviderPluginImpl implements DataProviderPlugin {
 
     public KycExchangeResult doKycExchange(Map<String, Object> identityDetails)
             throws Exception {
-        OIDCTransaction transaction = vciTransactionHelper
+        OIDCTransaction transaction = transactionHelper
                 .getOAuthTransaction(identityDetails.get(ACCESS_TOKEN_HASH).toString());
         KycExchangeDto kycExchangeDto = buildKycExchangeDto(transaction);
         String relyingPartyId = transaction.getRelyingPartyId();
         String clientId = transaction.getClientId();
-        return kycExchange(relyingPartyId, clientId, kycExchangeDto, false);
+        return kycExchange(relyingPartyId, clientId, kycExchangeDto);
     }
 
-    private KycExchangeResult kycExchange(String relyingPartyId, String clientId, KycExchangeDto kycExchangeDto,boolean isV2)
+    private KycExchangeResult kycExchange(String relyingPartyId, String clientId, KycExchangeDto kycExchangeDto)
             throws KycExchangeException {
         log.info("Started to build kyc-exchange request with transactionId : {} && clientId : {}",
                 kycExchangeDto.getTransactionId(), clientId);
@@ -209,14 +198,10 @@ public class IdaDataProviderPluginImpl implements DataProviderPlugin {
             idaKycExchangeRequest.setKycToken(kycExchangeDto.getKycToken());
             idaKycExchangeRequest.setConsentObtained(kycExchangeDto.getAcceptedClaims());
             idaKycExchangeRequest.setLocales(helperService.convertLangCodesToISO3LanguageCodes(kycExchangeDto.getClaimsLocales()));
-            idaKycExchangeRequest.setRespType(kycExchangeDto.getUserInfoResponseType()); //may be either JWT or JWE
+            idaKycExchangeRequest.setRespType(kycExchangeDto.getUserInfoResponseType()); // Setting the Response Type to null will give the final result as a JWT
             idaKycExchangeRequest.setIndividualId(kycExchangeDto.getIndividualId());
 
-            if(isV2){
-                setClaims((VerifiedKycExchangeDto) kycExchangeDto, idaKycExchangeRequest);
-            }
-
-            log.info("Sending the kyc exchange request : {}", idaKycExchangeRequest);
+            log.info("Built the kyc exchange request");
 
             //set signature header, body and invoke kyc exchange endpoint
             String requestBody = objectMapper.writeValueAsString(idaKycExchangeRequest);
@@ -247,46 +232,11 @@ public class IdaDataProviderPluginImpl implements DataProviderPlugin {
         throw new KycExchangeException();
     }
 
-    /**
-     * Set the verified and unVerified consented claims to {@link IdaKycExchangeRequest} object
-     * @param kycExchangeDto {@link KycExchangeDto}
-     * @param idaKycExchangeRequest {@link IdaKycExchangeRequest}
-     */
-    private void setClaims(VerifiedKycExchangeDto kycExchangeDto, IdaKycExchangeRequest idaKycExchangeRequest) {
-        if(kycExchangeDto != null){
-            Map<String, JsonNode> acceptedClaimDetails = kycExchangeDto.getAcceptedClaimDetails();
-            if(acceptedClaimDetails!=null && acceptedClaimDetails.get(VERIFIED_CLAIMS)!=null){
-                List<Map<String, Object>> verifiedClaimsList = objectMapper.convertValue(kycExchangeDto.getAcceptedClaimDetails()
-                        .get(VERIFIED_CLAIMS), new TypeReference<>() {});
-                idaKycExchangeRequest.setVerifiedConsentedClaims(verifiedClaimsList);
-            }
-
-            idaKycExchangeRequest.setUnVerifiedConsentedClaims(getUnVerifiedConsentedClaims(acceptedClaimDetails));
-        }
-    }
-
-    /**
-     * Method to return un verified consented claims
-     * @param acceptedClaimDetails Accepted claims Map
-     * @return un verified consented claims
-     */
-    @NotNull // This is added to not return null either return un verified claims map or empty map
-    private Map<String, Object> getUnVerifiedConsentedClaims(Map<String, JsonNode> acceptedClaimDetails) {
-        Map<String, JsonNode> unVerifiedConsentedClaims = new HashMap<>();
-        if(!CollectionUtils.isEmpty(acceptedClaimDetails)) {
-            for(Map.Entry<String, JsonNode> entry : acceptedClaimDetails.entrySet()) {
-                String key = entry.getKey();
-                JsonNode value = entry.getValue();
-                if(!key.equals(VERIFIED_CLAIMS)){
-                    unVerifiedConsentedClaims.put(key,value);
-                }
-            }
-        }
-        return objectMapper.convertValue(unVerifiedConsentedClaims, new TypeReference<>() {});
-    }
-
-    private Map<String, Object> decodeClaimsFromJwt(String jwtToken) throws JsonProcessingException {
+    private Map<String, Object> decodeClaimsFromJwt(String jwtToken) throws JsonProcessingException, DataProviderExchangeException {
         String[] parts = jwtToken.split("\\.");
+        if(parts.length < 3) {
+            throw new DataProviderExchangeException("Invalid KYC Exchange response.");
+        }
         String payload = new String(urlSafeDecoder.decode(parts[1]));
         Map<String, Object> claims = objectMapper.readValue(payload, Map.class);
 
