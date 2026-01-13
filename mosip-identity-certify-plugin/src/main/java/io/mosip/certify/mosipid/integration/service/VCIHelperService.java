@@ -46,7 +46,7 @@ public class VCIHelperService {
         JWTSignatureRequestDto jwtSignatureRequestDto = new JWTSignatureRequestDto();
         jwtSignatureRequestDto.setApplicationId(OIDC_PARTNER_APP_ID);
         jwtSignatureRequestDto.setReferenceId("");
-        jwtSignatureRequestDto.setIncludePayload(true);
+        jwtSignatureRequestDto.setIncludePayload(false);
         jwtSignatureRequestDto.setIncludeCertificate(true);
         jwtSignatureRequestDto.setDataToSign(HelperService.b64Encode(request));
         JWTSignatureResponseDto responseDto = signatureService.jwtSign(jwtSignatureRequestDto);
@@ -62,20 +62,5 @@ public class VCIHelperService {
 
     protected static String b64Encode(String value) {
         return urlSafeEncoder.encodeToString(value.getBytes(StandardCharsets.UTF_8));
-    }
-
-    //Converts an array of two-letter language codes to their corresponding ISO 639-2/T language codes.
-    protected List<String> convertLangCodesToISO3LanguageCodes(String[] langCodes) {
-        if(langCodes == null || langCodes.length == 0)
-            return List.of();
-        return Arrays.stream(langCodes)
-                .map(langCode -> {
-                    try {
-                        return StringUtils.isEmpty(langCode) ? null : new Locale(langCode).getISO3Language();
-                    } catch (MissingResourceException ex) {}
-                    return null;
-                })
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
     }
 }
