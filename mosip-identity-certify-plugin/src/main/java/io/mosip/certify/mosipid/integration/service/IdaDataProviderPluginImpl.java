@@ -102,7 +102,9 @@ public class IdaDataProviderPluginImpl implements DataProviderPlugin {
             if(kycExchangeResult != null) {
                 log.info("Kyc Exchange Success.");
                 String encryptedKyc = kycExchangeResult.getEncryptedKyc();
+                log.debug("Encrypted KYC: {}", encryptedKyc);
                 Map<String, Object> claims = decodeClaimsFromJwt(encryptedKyc);
+                log.debug("JWT Claims: {}", claims);
 
                 return new JSONObject(claims);
             }
