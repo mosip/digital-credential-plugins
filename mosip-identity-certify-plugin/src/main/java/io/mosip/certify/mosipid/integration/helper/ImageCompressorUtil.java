@@ -6,6 +6,7 @@ import io.mosip.certify.mosipid.integration.service.ImageCompressorServiceImpl;
 import io.mosip.kernel.biometrics.entities.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.Base64;
@@ -19,6 +20,12 @@ public class ImageCompressorUtil {
     public ImageCompressorUtil(ImageCompressorServiceImpl service) {
         this.service = service;
     }
+
+    @Value("${mosip.certify.image-compressor.image.max-allowed-size:4096}")
+    private int maxAllowedImageSize;
+
+    @Value("${mosip.certify.image-compressor.image.max-retry-attempts:3}")
+    private int maxRetryAttempts;
 
 
     public byte[] compressImage(byte[] imageBytes) {
@@ -59,8 +66,6 @@ public class ImageCompressorUtil {
             byte[] inputBytes = Base64.getDecoder().decode(base64Data);
 
             // Compress (assumed JP2 output)
-            final int targetSize = 4096;   // 4 KB
-            final int maxAttempts = 3;    // safety
             int attempts = 0;
             byte[] jp2Bytes;
 
@@ -68,10 +73,10 @@ public class ImageCompressorUtil {
                 jp2Bytes = compressImage(inputBytes);
                 attempts++;
 
-                if (jp2Bytes.length <= targetSize) {
+                if (jp2Bytes.length <= maxAllowedImageSize) {
                     break;
                 }
-                if (attempts >= maxAttempts) {
+                if (attempts >= maxRetryAttempts) {
                     throw new DataProviderExchangeException(
                             "FACE_IMAGE_TOO_LARGE",
                             "Unable to compress image with available compression. Check size or quality of the input image."
@@ -98,7 +103,8 @@ public class ImageCompressorUtil {
             return "data:" + outMime + ";base64," + b64;
 
         } catch (IllegalArgumentException iae) {
-            throw new DataProviderExchangeException("INVALID_IMAGE_DATA", iae.getMessage());
+            log.error("ERROR_PARSING_IMAGE_DATA", iae);
+            throw new DataProviderExchangeException("ERROR_PARSING_IMAGE_DATA", iae.getMessage());
         } catch (Exception e) {
             log.error("Image compression failed", e);
             throw new DataProviderExchangeException(
