@@ -132,8 +132,7 @@ public class IdaDataProviderPluginImpl implements DataProviderPlugin {
                 if(jsonRes.has("picture")) {
                     String imageData = jsonRes.getString("picture");
                     String compressedImageData = imageCompressorUtil.extractAndCompressImage(imageData);
-                    jsonRes.put("face", imageData);
-                    jsonRes.put("compressedFace", compressedImageData);
+                    jsonRes.put("compressedPicture", compressedImageData);
                 }
                 return jsonRes;
             }
