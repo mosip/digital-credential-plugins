@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.certify.api.exception.DataProviderExchangeException;
 import io.mosip.certify.api.spi.DataProviderPlugin;
 import io.mosip.certify.mosipid.integration.dto.*;
+import io.mosip.certify.mosipid.integration.helper.ImageCompressorUtil;
 import io.mosip.certify.mosipid.integration.helper.TransactionHelper;
 import io.mosip.esignet.api.dto.*;
 import io.mosip.esignet.api.exception.KycExchangeException;
@@ -14,6 +15,8 @@ import io.mosip.kernel.keymanagerservice.constant.KeymanagerConstant;
 import io.mosip.kernel.keymanagerservice.entity.KeyAlias;
 import io.mosip.kernel.keymanagerservice.helper.KeymanagerDBHelper;
 import lombok.extern.slf4j.Slf4j;
+import org.bytedeco.javacpp.Loader;
+import org.bytedeco.opencv.opencv_java;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +43,22 @@ import java.util.*;
 public class IdaDataProviderPluginImpl implements DataProviderPlugin {
     // TODO: Clean up code
     // TODO: Write unit tests
+
+    static {
+        /**
+         * load OpenCV library nu.pattern.OpenCV.loadShared();
+         * System.loadLibrary(org.opencv.core.Core.NATIVE_LIBRARY_NAME);
+         */
+        /**
+         * In Java >= 12 it is no longer possible to use addLibraryPath, which modifies
+         * the ClassLoader's static usr_paths field. There does not seem to be any way
+         * around this so we fall back to loadLocally() and return.
+         */
+        nu.pattern.OpenCV.loadLocally();
+        Loader.load(opencv_java.class);
+        System.setProperty("OPENCV_IO_ENABLE_JASPER", "1");
+        log.info("OPENCV_IO_ENABLE_JASPER: {}", System.getenv("OPENCV_IO_ENABLE_JASPER"));
+    }
 
     private static final String ACCESS_TOKEN_HASH = "accessTokenHash";
     public static final String SIGNATURE_HEADER_NAME = "signature";
@@ -93,6 +112,9 @@ public class IdaDataProviderPluginImpl implements DataProviderPlugin {
     @Autowired
     TransactionHelper transactionHelper;
 
+    @Autowired
+    private ImageCompressorUtil imageCompressorUtil;
+
     private Base64.Decoder urlSafeDecoder = Base64.getUrlDecoder();
 
     @Override
@@ -106,7 +128,15 @@ public class IdaDataProviderPluginImpl implements DataProviderPlugin {
                 Map<String, Object> claims = decodeClaimsFromJwt(encryptedKyc);
                 log.debug("JWT Claims: {}", claims);
 
-                return new JSONObject(claims);
+                JSONObject jsonRes = new JSONObject(claims);
+
+                if(jsonRes.has("picture")) {
+                    String imageData = jsonRes.getString("picture");
+                    String compressedImageData = imageCompressorUtil.extractAndCompressImage(imageData);
+                    jsonRes.put("face", imageData);
+                    jsonRes.put("compressedFace", compressedImageData);
+                }
+                return jsonRes;
             }
         }
         catch (JSONException | JsonProcessingException e) {
