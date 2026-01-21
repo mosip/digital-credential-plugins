@@ -57,7 +57,6 @@ public class IdaDataProviderPluginImpl implements DataProviderPlugin {
         nu.pattern.OpenCV.loadLocally();
         Loader.load(opencv_java.class);
         System.setProperty("OPENCV_IO_ENABLE_JASPER", "1");
-        log.info("OPENCV_IO_ENABLE_JASPER: {}", System.getenv("OPENCV_IO_ENABLE_JASPER"));
     }
 
     private static final String ACCESS_TOKEN_HASH = "accessTokenHash";

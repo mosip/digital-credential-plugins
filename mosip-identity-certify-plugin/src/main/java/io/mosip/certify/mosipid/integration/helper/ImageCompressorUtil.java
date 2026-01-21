@@ -105,6 +105,9 @@ public class ImageCompressorUtil {
         } catch (IllegalArgumentException iae) {
             log.error("ERROR_PARSING_IMAGE_DATA", iae);
             throw new DataProviderExchangeException("ERROR_PARSING_IMAGE_DATA", iae.getMessage());
+        } catch (DataProviderExchangeException e) {
+            log.error("MAX_ATTEMPTS_REACHED", e);
+            throw e;
         } catch (Exception e) {
             log.error("Image compression failed", e);
             throw new DataProviderExchangeException(
