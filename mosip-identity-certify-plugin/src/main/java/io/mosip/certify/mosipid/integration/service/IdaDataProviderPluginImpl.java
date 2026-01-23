@@ -55,7 +55,6 @@ public class IdaDataProviderPluginImpl implements DataProviderPlugin {
          * around this so we fall back to loadLocally() and return.
          */
         nu.pattern.OpenCV.loadLocally();
-        Loader.load(opencv_java.class);
         System.setProperty("OPENCV_IO_ENABLE_JASPER", "1");
     }
 
