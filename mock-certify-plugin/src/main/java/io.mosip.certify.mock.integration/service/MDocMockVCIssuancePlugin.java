@@ -74,10 +74,9 @@ public class MDocMockVCIssuancePlugin implements VCIssuancePlugin {
 
     @Override
     public VCResult<String> getVerifiableCredential(VCRequestDto vcRequestDto, String holderId, Map<String, Object> identityDetails) throws VCIExchangeException {
-        String accessTokenHash = identityDetails.get(ACCESS_TOKEN_HASH).toString();
         String documentNumber;
         try {
-            documentNumber = getIndividualId(getUserInfoTransaction(accessTokenHash));
+            documentNumber = (String) identityDetails.get("sub");
         } catch (Exception e) {
             log.error("Error getting documentNumber", e);
             throw new VCIExchangeException(ErrorConstants.VCI_EXCHANGE_FAILED);
@@ -112,48 +111,5 @@ public class MDocMockVCIssuancePlugin implements VCIssuancePlugin {
             put("vehicle_category_code","A");
         }});
         return data;
-    }
-
-    /**
-     * TODO: This function getIndividualId is duplicated with Other VCIPlugin class and can be moved to commons
-     */
-    protected String getIndividualId(OIDCTransaction transaction) {
-        if(!storeIndividualId)
-            return null;
-        return secureIndividualId ? decryptIndividualId(transaction.getIndividualId()) : transaction.getIndividualId();
-    }
-
-    private String decryptIndividualId(String encryptedIndividualId) {
-        try {
-            Cipher cipher = Cipher.getInstance(aesECBTransformation);
-            byte[] decodedBytes = Base64.getUrlDecoder().decode(encryptedIndividualId);
-            cipher.init(Cipher.DECRYPT_MODE, getSecretKeyFromHSM());
-            return new String(cipher.doFinal(decodedBytes, 0, decodedBytes.length));
-        } catch(Exception e) {
-            log.error("Error Cipher Operations of provided secret data.", e);
-            throw new CertifyException(AES_CIPHER_FAILED);
-        }
-    }
-
-    private OIDCTransaction getUserInfoTransaction(String accessTokenHash) {
-        return cacheManager.getCache(USERINFO_CACHE).get(accessTokenHash, OIDCTransaction.class);
-    }
-
-    private Key getSecretKeyFromHSM() {
-        String keyAlias = getKeyAlias(CERTIFY_SERVICE_APP_ID, cacheSecretKeyRefId);
-        if (Objects.nonNull(keyAlias)) {
-            return keyStore.getSymmetricKey(keyAlias);
-        }
-        throw new CertifyException(NO_UNIQUE_ALIAS);
-    }
-
-    private String getKeyAlias(String keyAppId, String keyRefId) {
-        Map<String, List<KeyAlias>> keyAliasMap = dbHelper.getKeyAliases(keyAppId, keyRefId, LocalDateTime.now(ZoneOffset.UTC));
-        List<KeyAlias> currentKeyAliases = keyAliasMap.get(KeymanagerConstant.CURRENTKEYALIAS);
-        if (!currentKeyAliases.isEmpty() && currentKeyAliases.size() == 1) {
-            return currentKeyAliases.getFirst().getAlias();
-        }
-        log.error("CurrentKeyAlias is not unique. KeyAlias count: {}", currentKeyAliases.size());
-        throw new CertifyException(NO_UNIQUE_ALIAS);
     }
 }

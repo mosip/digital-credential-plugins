@@ -61,12 +61,6 @@ public class MDocMockVCIssuancePluginTest {
         Map<String, Object> identityDetails = new HashMap<>();
         identityDetails.put("accessTokenHash", "tokenHash");
 
-        OIDCTransaction transaction = mock(OIDCTransaction.class);
-        when(transaction.getIndividualId()).thenReturn("docNum");
-
-        when(cacheManager.getCache(anyString())).thenReturn(cache);
-        when(cache.get(anyString(), eq(OIDCTransaction.class))).thenReturn(transaction);
-
         when(mdocGenerator.generate(anyMap(), anyString(), anyString())).thenReturn("mockedMdoc");
 
         VCResult<String> result = plugin.getVerifiableCredential(dto, "holderId", identityDetails);
@@ -80,68 +74,20 @@ public class MDocMockVCIssuancePluginTest {
     public void testGetVerifiableCredential_NotImplemented() throws Exception {
         VCRequestDto dto = mock(VCRequestDto.class);
 
+        // Use a format that MDocMockVCIssuancePlugin does not implement
+        when(dto.getFormat()).thenReturn(VCFormats.LDP_VC); // or any other unsupported format
+
         Map<String, Object> identityDetails = new HashMap<>();
         identityDetails.put("accessTokenHash", "tokenHash");
 
         plugin.getVerifiableCredential(dto, "holderId", identityDetails);
     }
 
+
     @Test(expected = VCIExchangeException.class)
     public void testGetVerifiableCredentialWithLinkedDataProof_NotImplemented() throws Exception {
         VCRequestDto dto = mock(VCRequestDto.class);
         plugin.getVerifiableCredentialWithLinkedDataProof(dto, "holderId", new HashMap<>());
-    }
-
-    @Test
-    public void testGetIndividualId_SecureFalse() {
-        OIDCTransaction transaction = mock(OIDCTransaction.class);
-        when(transaction.getIndividualId()).thenReturn("docNum");
-        ReflectionTestUtils.setField(plugin, "secureIndividualId", false);
-        ReflectionTestUtils.setField(plugin, "storeIndividualId", true);
-        String result = (String) ReflectionTestUtils.invokeMethod(plugin, "getIndividualId", transaction);
-        assertEquals("docNum", result);
-    }
-
-    @Test
-    public void testGetIndividualId_StoreFalse() {
-        OIDCTransaction transaction = mock(OIDCTransaction.class);
-        ReflectionTestUtils.setField(plugin, "storeIndividualId", false);
-        String result = (String) ReflectionTestUtils.invokeMethod(plugin, "getIndividualId", transaction);
-        assertNull(result);
-    }
-
-    @Test(expected = CertifyException.class)
-    public void testDecryptIndividualId_Exception() {
-        ReflectionTestUtils.setField(plugin, "aesECBTransformation", "invalid");
-        ReflectionTestUtils.invokeMethod(plugin, "decryptIndividualId", "invalid");
-    }
-
-    @Test(expected = CertifyException.class)
-    public void testGetSecretKeyFromHSM_NoAlias() {
-        when(dbHelper.getKeyAliases(anyString(), anyString(), any(LocalDateTime.class)))
-                .thenReturn(Collections.singletonMap("currentKeyAlias", new ArrayList<>()));
-        ReflectionTestUtils.invokeMethod(plugin, "getSecretKeyFromHSM");
-    }
-
-    @Test
-    public void testGetKeyAlias_Success() {
-        KeyAlias alias = mock(KeyAlias.class);
-        when(alias.getAlias()).thenReturn("alias");
-        List<KeyAlias> aliases = Collections.singletonList(alias);
-        Map<String, List<KeyAlias>> map = new HashMap<>();
-        map.put("currentKeyAlias", aliases);
-        when(dbHelper.getKeyAliases(anyString(), anyString(), any(LocalDateTime.class))).thenReturn(map);
-        String result = (String) ReflectionTestUtils.invokeMethod(plugin, "getKeyAlias", "appId", "refId");
-        assertEquals("alias", result);
-    }
-
-    @Test(expected = CertifyException.class)
-    public void testGetKeyAlias_NotUnique() {
-        List<KeyAlias> aliases = Arrays.asList(mock(KeyAlias.class), mock(KeyAlias.class));
-        Map<String, List<KeyAlias>> map = new HashMap<>();
-        map.put("currentKeyAlias", aliases);
-        when(dbHelper.getKeyAliases(anyString(), anyString(), any(LocalDateTime.class))).thenReturn(map);
-        ReflectionTestUtils.invokeMethod(plugin, "getKeyAlias", "appId", "refId");
     }
 
     @Test
@@ -157,17 +103,5 @@ public class MDocMockVCIssuancePluginTest {
         assertEquals(docNum, data.get("document_number"));
         assertTrue(data.get("driving_privileges") instanceof Map);
         assertEquals("A", ((Map<?, ?>) data.get("driving_privileges")).get("vehicle_category_code"));
-    }
-
-    @Test
-    public void testGetUserInfoTransaction() {
-        String accessTokenHash = "tokenHash";
-        OIDCTransaction transaction = mock(OIDCTransaction.class);
-        when(cacheManager.getCache(anyString())).thenReturn(cache);
-        when(cache.get(eq(accessTokenHash), eq(OIDCTransaction.class))).thenReturn(transaction);
-
-        OIDCTransaction result = (OIDCTransaction) ReflectionTestUtils.invokeMethod(plugin, "getUserInfoTransaction", accessTokenHash);
-        assertNotNull(result);
-        assertEquals(transaction, result);
     }
 }
