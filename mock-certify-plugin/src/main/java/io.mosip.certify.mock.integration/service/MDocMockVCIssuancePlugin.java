@@ -36,6 +36,10 @@ public class MDocMockVCIssuancePlugin implements VCIssuancePlugin {
     public VCResult<String> getVerifiableCredential(VCRequestDto vcRequestDto, String holderId, Map<String, Object> identityDetails) throws VCIExchangeException {
         String documentNumber;
         try {
+            if(identityDetails.get("sub") == null){
+                log.error("sub field is missing in identityDetails claims. Check the access token or auth configurations.");
+                throw new VCIExchangeException(ErrorConstants.VCI_EXCHANGE_FAILED);
+            }
             documentNumber = (String) identityDetails.get("sub");
         } catch (Exception e) {
             log.error("Error getting documentNumber", e);

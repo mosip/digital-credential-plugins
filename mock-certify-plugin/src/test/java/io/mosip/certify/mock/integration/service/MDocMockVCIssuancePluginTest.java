@@ -61,6 +61,7 @@ public class MDocMockVCIssuancePluginTest {
 
         Map<String, Object> identityDetails = new HashMap<>();
         identityDetails.put("accessTokenHash", "tokenHash");
+        identityDetails.put("sub", "12345");
 
         plugin.getVerifiableCredential(dto, "holderId", identityDetails);
     }
