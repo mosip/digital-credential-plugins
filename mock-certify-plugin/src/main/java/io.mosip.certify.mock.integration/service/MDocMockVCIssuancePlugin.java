@@ -7,61 +7,21 @@ import io.mosip.certify.api.exception.VCIExchangeException;
 import io.mosip.certify.api.spi.VCIssuancePlugin;
 import io.mosip.certify.api.util.ErrorConstants;
 import io.mosip.certify.constants.VCFormats;
-import io.mosip.certify.core.exception.CertifyException;
 import io.mosip.certify.mock.integration.mocks.MdocGenerator;
-import io.mosip.esignet.core.dto.OIDCTransaction;
-import io.mosip.kernel.core.keymanager.spi.KeyStore;
-import io.mosip.kernel.keymanagerservice.constant.KeymanagerConstant;
-import io.mosip.kernel.keymanagerservice.entity.KeyAlias;
-import io.mosip.kernel.keymanagerservice.helper.KeymanagerDBHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Component;
 
-import javax.crypto.Cipher;
-import java.security.Key;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.*;
 
 @ConditionalOnProperty(value = "mosip.certify.integration.vci-plugin", havingValue = "MDocMockVCIssuancePlugin")
 @Component
 @Slf4j
 public class MDocMockVCIssuancePlugin implements VCIssuancePlugin {
-    private static final String AES_CIPHER_FAILED = "aes_cipher_failed";
-    private static final String NO_UNIQUE_ALIAS = "no_unique_alias";
-    private static final String USERINFO_CACHE = "userinfo";
-
-    @Autowired
-    private CacheManager cacheManager;
-
-    @Autowired
-    private KeyStore keyStore;
-
-    @Autowired
-    private KeymanagerDBHelper dbHelper;
-
-    @Value("${mosip.certify.cache.security.secretkey.reference-id}")
-    private String cacheSecretKeyRefId;
-
-    @Value("${mosip.certify.cache.security.algorithm-name}")
-    private String aesECBTransformation;
-
-    @Value("${mosip.certify.cache.secure.individual-id}")
-    private boolean secureIndividualId;
-
-    @Value("${mosip.certify.cache.store.individual-id}")
-    private boolean storeIndividualId;
-
     @Value("${mosip.certify.mock.vciplugin.mdoc.issuer-key-cert:empty}")
     private String issuerKeyAndCertificate = null;
-
-    private static final String ACCESS_TOKEN_HASH = "accessTokenHash";
-
-    public static final String CERTIFY_SERVICE_APP_ID = "CERTIFY_SERVICE";
     
     @Autowired
     private MdocGenerator mdocGenerator;
