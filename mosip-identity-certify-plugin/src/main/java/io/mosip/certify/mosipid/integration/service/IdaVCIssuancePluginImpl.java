@@ -22,7 +22,7 @@ import io.mosip.certify.mosipid.integration.dto.CredentialDefinitionDTO;
 import io.mosip.certify.mosipid.integration.dto.IdaResponseWrapper;
 import io.mosip.certify.mosipid.integration.dto.IdaVcExchangeRequest;
 import io.mosip.certify.mosipid.integration.dto.IdaVcExchangeResponse;
-import io.mosip.certify.mosipid.integration.helper.VCITransactionHelper;
+import io.mosip.certify.mosipid.integration.helper.TransactionHelper;
 import io.mosip.esignet.core.dto.OIDCTransaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -65,7 +65,7 @@ public class IdaVCIssuancePluginImpl implements VCIssuancePlugin {
 	private RestTemplate restTemplate;
 
 	@Autowired
-	VCIHelperService helperService;
+	HelperService helperService;
 
 	@Autowired
 	private KeyStore keyStore;
@@ -74,7 +74,7 @@ public class IdaVCIssuancePluginImpl implements VCIssuancePlugin {
 	private KeymanagerDBHelper dbHelper;
 
 	@Autowired
-	VCITransactionHelper vciTransactionHelper;
+	TransactionHelper transactionHelper;
 
 	@Value("${mosip.certify.ida.vci-exchange-url}")
 	private String vciExchangeUrl;
@@ -105,7 +105,7 @@ public class IdaVCIssuancePluginImpl implements VCIssuancePlugin {
 																			 Map<String, Object> identityDetails) throws VCIExchangeException {
 		log.info("Started to created the VCIssuance");
 		try {
-			OIDCTransaction transaction = vciTransactionHelper
+			OIDCTransaction transaction = transactionHelper
 					.getOAuthTransaction(identityDetails.get(ACCESS_TOKEN_HASH).toString());
 			String individualId = getIndividualId(transaction.getIndividualId());
 			IdaVcExchangeRequest idaVciExchangeRequest = new IdaVcExchangeRequest();

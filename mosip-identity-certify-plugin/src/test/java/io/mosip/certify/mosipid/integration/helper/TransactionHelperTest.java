@@ -18,7 +18,7 @@ import org.springframework.cache.support.NoOpCache;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @RunWith(MockitoJUnitRunner.class)
-public class VCITransactionHelperTest {
+public class TransactionHelperTest {
 
     @Mock
     CacheManager cacheManager;
@@ -27,22 +27,22 @@ public class VCITransactionHelperTest {
     Cache cache=new NoOpCache("test");
 
     @InjectMocks
-    VCITransactionHelper vciTransactionHelper;
+    TransactionHelper transactionHelper;
 
     @Test
     public void getOAuthTransactionWithValidDetails_thenPass() throws Exception {
-        ReflectionTestUtils.setField(vciTransactionHelper, "userinfoCache", "test");
+        ReflectionTestUtils.setField(transactionHelper, "userinfoCache", "test");
         OIDCTransaction oidcTransaction = new OIDCTransaction();
         oidcTransaction.setTransactionId("test");
         Mockito.when(cacheManager.getCache(Mockito.anyString())).thenReturn(cache);
         Mockito.when(cache.get("test",OIDCTransaction.class)).thenReturn(oidcTransaction);
-        vciTransactionHelper.getOAuthTransaction("test");
+        transactionHelper.getOAuthTransaction("test");
     }
 
     @Test
     public void getOAuthTransactionWithInValidDetails_thenFail() {
         try{
-            vciTransactionHelper.getOAuthTransaction("test");
+            transactionHelper.getOAuthTransaction("test");
         }catch (Exception e){
             assert(e.getMessage().equals("cache_missing"));
         }

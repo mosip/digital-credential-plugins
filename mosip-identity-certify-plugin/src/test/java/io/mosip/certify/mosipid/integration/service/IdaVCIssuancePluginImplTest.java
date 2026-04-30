@@ -14,7 +14,7 @@ import io.mosip.certify.api.exception.VCIExchangeException;
 import io.mosip.certify.api.util.ErrorConstants;
 import io.mosip.certify.core.exception.CertifyException;
 import io.mosip.certify.mosipid.integration.dto.*;
-import io.mosip.certify.mosipid.integration.helper.VCITransactionHelper;
+import io.mosip.certify.mosipid.integration.helper.TransactionHelper;
 import io.mosip.esignet.core.dto.OIDCTransaction;
 import io.mosip.kernel.core.keymanager.spi.KeyStore;
 import io.mosip.kernel.keymanagerservice.entity.KeyAlias;
@@ -49,7 +49,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class IdaVCIssuancePluginImplTest {
 
     @Mock
-    VCITransactionHelper vciTransactionHelper;
+    TransactionHelper transactionHelper;
 
     @Mock
     ObjectMapper objectMapper;
@@ -58,7 +58,7 @@ public class IdaVCIssuancePluginImplTest {
     RestTemplate restTemplate;
 
     @Mock
-    VCIHelperService helperService;
+    HelperService helperService;
 
     @Mock
     KeymanagerDBHelper keymanagerDBHelper;
@@ -102,7 +102,7 @@ public class IdaVCIssuancePluginImplTest {
                 new ParameterizedTypeReference<IdaResponseWrapper<IdaVcExchangeResponse<JsonLDObject>>>() {
                 };
 
-        Mockito.when(vciTransactionHelper.getOAuthTransaction(Mockito.any())).thenReturn(oidcTransaction);
+        Mockito.when(transactionHelper.getOAuthTransaction(Mockito.any())).thenReturn(oidcTransaction);
         Mockito.when(objectMapper.writeValueAsString(Mockito.any(IdaVcExchangeRequest.class))).thenReturn("jsonString");
         Mockito.when(restTemplate.exchange(
                 Mockito.any(RequestEntity.class),
@@ -163,7 +163,7 @@ public class IdaVCIssuancePluginImplTest {
                 new ParameterizedTypeReference<IdaResponseWrapper<IdaVcExchangeResponse<JsonLDObject>>>() {
                 };
 
-        Mockito.when(vciTransactionHelper.getOAuthTransaction(Mockito.any())).thenReturn(oidcTransaction);
+        Mockito.when(transactionHelper.getOAuthTransaction(Mockito.any())).thenReturn(oidcTransaction);
         Mockito.when(objectMapper.writeValueAsString(Mockito.any())).thenReturn("jsonString");
         Mockito.when(restTemplate.exchange(
                 Mockito.any(RequestEntity.class),
@@ -198,7 +198,7 @@ public class IdaVCIssuancePluginImplTest {
         oidcTransaction.setAuthTransactionId("authTransactionId");
         oidcTransaction.setRelyingPartyId("relyingPartyId");
 
-        Mockito.when(vciTransactionHelper.getOAuthTransaction(Mockito.any())).thenReturn(oidcTransaction);
+        Mockito.when(transactionHelper.getOAuthTransaction(Mockito.any())).thenReturn(oidcTransaction);
         try{
             VCResult result=  idaVCIssuancePlugin.getVerifiableCredentialWithLinkedDataProof(vcRequestDto,"holderId",Map.of("accessTokenHash","ACCESS_TOKEN_HASH","client_id","CLIENT_ID"));
             Assert.fail();
@@ -225,7 +225,7 @@ public class IdaVCIssuancePluginImplTest {
         oidcTransaction.setAuthTransactionId("authTransactionId");
         oidcTransaction.setRelyingPartyId("relyingPartyId");
         oidcTransaction.setClaimsLocales(new String[]{"en-US", "en", "en-CA", "fr-FR", "fr-CA"});
-        Mockito.when(vciTransactionHelper.getOAuthTransaction(Mockito.any())).thenThrow(new VCIExchangeException("IDA-VCI-003"));
+        Mockito.when(transactionHelper.getOAuthTransaction(Mockito.any())).thenThrow(new VCIExchangeException("IDA-VCI-003"));
         try {
             idaVCIssuancePlugin.getVerifiableCredentialWithLinkedDataProof(vcRequestDto, "holderId", Map.of("accessTokenHash", "ACCESS_TOKEN_HASH", "client_id", "CLIENT_ID"));
             Assert.fail();
@@ -264,7 +264,7 @@ public class IdaVCIssuancePluginImplTest {
         KeyAlias keyAlias = new KeyAlias();
         keyAlias.setAlias("test");
         keyaliasesMap.put(CURRENTKEYALIAS, Arrays.asList(keyAlias));
-        Mockito.when(vciTransactionHelper.getOAuthTransaction(Mockito.any())).thenReturn(oidcTransaction);
+        Mockito.when(transactionHelper.getOAuthTransaction(Mockito.any())).thenReturn(oidcTransaction);
         Mockito.when(objectMapper.writeValueAsString(Mockito.any())).thenReturn("jsonString");
         Mockito.when(keymanagerDBHelper.getKeyAliases(Mockito.anyString(), Mockito.anyString(), Mockito.any(LocalDateTime.class))).thenReturn(keyaliasesMap);
         Mockito.when(keyStore.getSymmetricKey(Mockito.anyString())).thenReturn(key, key);
@@ -330,7 +330,7 @@ public class IdaVCIssuancePluginImplTest {
         oidcTransaction.setAuthTransactionId("authTransactionId");
         oidcTransaction.setRelyingPartyId("relyingPartyId");
 
-        Mockito.when(vciTransactionHelper.getOAuthTransaction(Mockito.any())).thenReturn(oidcTransaction);
+        Mockito.when(transactionHelper.getOAuthTransaction(Mockito.any())).thenReturn(oidcTransaction);
         Mockito.when(objectMapper.writeValueAsString(Mockito.any())).thenReturn("jsonString");
         Mockito.when(restTemplate.exchange(
                 Mockito.any(RequestEntity.class),
@@ -359,7 +359,7 @@ public class IdaVCIssuancePluginImplTest {
         oidcTransaction.setAuthTransactionId("authTransactionId");
         oidcTransaction.setRelyingPartyId("relyingPartyId");
 
-        Mockito.when(vciTransactionHelper.getOAuthTransaction(Mockito.any())).thenReturn(oidcTransaction);
+        Mockito.when(transactionHelper.getOAuthTransaction(Mockito.any())).thenReturn(oidcTransaction);
         Mockito.when(objectMapper.writeValueAsString(Mockito.any())).thenThrow(new JsonProcessingException("Error") {});
 
         try {

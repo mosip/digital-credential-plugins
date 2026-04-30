@@ -13,7 +13,7 @@ import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Component;
 
 @Component
-@ConditionalOnProperty(value = "mosip.certify.integration.data-provider-plugin", havingValue = "IdaDataProviderPluginImpl")
+@ConditionalOnProperty(value = "mosip.certify.integration.ida-plugin-helper", havingValue = "IdaPluginImpl")
 public class TransactionHelper {
 
     @Autowired
