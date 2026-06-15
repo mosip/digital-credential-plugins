@@ -10,7 +10,7 @@
 
       <groupId>io.inji.certify</groupId>
       <artifactId>mock-certify-plugin</artifactId>
-      <version>0.7.0-SNAPSHOT</version>
+      <version>1.0.0-SNAPSHOT</version>
       <packaging>jar</packaging>
 
       <name>mock-certify-integration-impl</name>
@@ -65,7 +65,7 @@
         <dependency>
             <groupId>io.inji.certify</groupId>
             <artifactId>certify-core</artifactId>
-            <version>0.14.0-SNAPSHOT</version>
+            <version>1.0.0-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
