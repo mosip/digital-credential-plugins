@@ -28,6 +28,7 @@ jobs:
     with:
       SERVICE_LOCATION: sunbird-rc-certify-integration-impl
       BUILD_ARTIFACT: sunbird-rc-certify-integration-impl
+      LICENSE_NAME: 'Apache 2.0'
     secrets:
       OSSRH_USER: ${{ secrets.OSSRH_USER }}
       OSSRH_SECRET: ${{ secrets.OSSRH_SECRET }}
@@ -71,6 +72,7 @@ jobs:
     with:
       SERVICE_LOCATION: mosip-identity-certify-plugin
       BUILD_ARTIFACT: mosip-identity-certify-plugin
+      LICENSE_NAME: 'Apache 2.0'
     secrets:
       OSSRH_USER: ${{ secrets.OSSRH_USER }}
       OSSRH_SECRET: ${{ secrets.OSSRH_SECRET }}
@@ -114,6 +116,7 @@ jobs:
     with:
       SERVICE_LOCATION: mock-certify-plugin
       BUILD_ARTIFACT: mock-certify-plugin
+      LICENSE_NAME: 'Apache 2.0'
     secrets:
       OSSRH_USER: ${{ secrets.OSSRH_USER }}
       OSSRH_SECRET: ${{ secrets.OSSRH_SECRET }}
@@ -157,6 +160,7 @@ jobs:
     with:
       SERVICE_LOCATION: postgres-dataprovider-plugin
       BUILD_ARTIFACT: postgres-dataprovider-plugin
+      LICENSE_NAME: 'Apache 2.0'
     secrets:
       OSSRH_USER: ${{ secrets.OSSRH_USER }}
       OSSRH_SECRET: ${{ secrets.OSSRH_SECRET }}
