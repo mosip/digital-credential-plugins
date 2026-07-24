@@ -103,7 +103,7 @@ generate_keys "mock_issuer" "password"
 
 ### MockCSVDataProviderPlugin
 
-To use this plugin set the below properties
+To use this plugin set the below properties 
 
 ```properties
 mosip.certify.integration.data-provider-plugin=MockCSVDataProviderPlugin
