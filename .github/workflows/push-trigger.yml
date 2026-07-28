@@ -24,7 +24,7 @@ on:
 
 jobs:
   build-maven-sunbird-rc-certify-integration-impl:
-    uses: mosip/kattu/.github/workflows/maven-build.yml@gpgupdate-masterj21
+    uses: mosip/kattu/.github/workflows/maven-build.yml@v0.0.1
     with:
       SERVICE_LOCATION: sunbird-rc-certify-integration-impl
       BUILD_ARTIFACT: sunbird-rc-certify-integration-impl
@@ -40,7 +40,7 @@ jobs:
   publish_to_nexus_sunbird-rc-certify-integration-impl:
     if: "${{ !contains(github.ref, 'master') && github.event_name != 'pull_request' && github.event_name != 'release' && github.event_name != 'prerelease' && github.event_name != 'publish' }}"
     needs: build-maven-sunbird-rc-certify-integration-impl
-    uses: mosip/kattu/.github/workflows/maven-publish-to-nexus.yml@gpgupdate-masterj21
+    uses: mosip/kattu/.github/workflows/maven-publish-to-nexus.yml@v0.0.1
     with:
       SERVICE_LOCATION: ./sunbird-rc-certify-integration-impl
     secrets:
@@ -55,7 +55,7 @@ jobs:
   sonar_analysis:
     needs: build-maven-sunbird-rc-certify-integration-impl
     if: "${{  github.event_name != 'pull_request' }}"
-    uses: mosip/kattu/.github/workflows/maven-sonar-analysis-new.yml@develop
+    uses: mosip/kattu/.github/workflows/maven-sonar-analysis.yml@v0.0.1
     with:
       SERVICE_LOCATION: sunbird-rc-certify-integration-impl
     secrets:
@@ -68,7 +68,7 @@ jobs:
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_INJI_TEAM }}
 
   build-maven-mosip-identity-certify-plugin:
-    uses: mosip/kattu/.github/workflows/maven-build.yml@gpgupdate-masterj21
+    uses: mosip/kattu/.github/workflows/maven-build.yml@v0.0.1
     with:
       SERVICE_LOCATION: mosip-identity-certify-plugin
       BUILD_ARTIFACT: mosip-identity-certify-plugin
@@ -84,7 +84,7 @@ jobs:
   publish_to_nexus_mosip-identity-certify-plugin:
     if: "${{ !contains(github.ref, 'master') && github.event_name != 'pull_request' && github.event_name != 'release' && github.event_name != 'prerelease' && github.event_name != 'publish' }}"
     needs: build-maven-mosip-identity-certify-plugin
-    uses: mosip/kattu/.github/workflows/maven-publish-to-nexus.yml@gpgupdate-masterj21
+    uses: mosip/kattu/.github/workflows/maven-publish-to-nexus.yml@v0.0.1
     with:
       SERVICE_LOCATION: ./mosip-identity-certify-plugin
     secrets:
@@ -99,7 +99,7 @@ jobs:
   sonar_analysis_mosip-identity-certify-plugin:
     needs: build-maven-mosip-identity-certify-plugin
     if: "${{  github.event_name != 'pull_request' }}"
-    uses: mosip/kattu/.github/workflows/maven-sonar-analysis-new.yml@develop
+    uses: mosip/kattu/.github/workflows/maven-sonar-analysis.yml@v0.0.1
     with:
       SERVICE_LOCATION: mosip-identity-certify-plugin
     secrets:
@@ -112,7 +112,7 @@ jobs:
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
   build-maven-mock-certify-plugin:
-    uses: mosip/kattu/.github/workflows/maven-build.yml@gpgupdate-masterj21
+    uses: mosip/kattu/.github/workflows/maven-build.yml@v0.0.1
     with:
       SERVICE_LOCATION: mock-certify-plugin
       BUILD_ARTIFACT: mock-certify-plugin
@@ -128,7 +128,7 @@ jobs:
   publish_to_nexus_mock-certify-plugin:
     if: "${{ !contains(github.ref, 'master') && github.event_name != 'pull_request' && github.event_name != 'release' && github.event_name != 'prerelease' && github.event_name != 'publish' }}"
     needs: build-maven-mock-certify-plugin
-    uses: mosip/kattu/.github/workflows/maven-publish-to-nexus.yml@gpgupdate-masterj21
+    uses: mosip/kattu/.github/workflows/maven-publish-to-nexus.yml@v0.0.1
     with:
       SERVICE_LOCATION: ./mock-certify-plugin
     secrets:
@@ -143,7 +143,7 @@ jobs:
   sonar_analysis_mock-certify-plugin:
     needs: build-maven-mock-certify-plugin
     if: "${{  github.event_name != 'pull_request' }}"
-    uses: mosip/kattu/.github/workflows/maven-sonar-analysis-new.yml@develop
+    uses: mosip/kattu/.github/workflows/maven-sonar-analysis.yml@v0.0.1
     with:
       SERVICE_LOCATION: mock-certify-plugin
     secrets:
@@ -156,7 +156,7 @@ jobs:
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
   build-maven-postgres-dataprovider-plugin:
-    uses: mosip/kattu/.github/workflows/maven-build.yml@gpgupdate-masterj21
+    uses: mosip/kattu/.github/workflows/maven-build.yml@v0.0.1
     with:
       SERVICE_LOCATION: postgres-dataprovider-plugin
       BUILD_ARTIFACT: postgres-dataprovider-plugin
@@ -172,7 +172,7 @@ jobs:
   publish_to_nexus_postgres-dataprovider-plugin:
     if: "${{ !contains(github.ref, 'master') && github.event_name != 'pull_request' && github.event_name != 'release' && github.event_name != 'prerelease' && github.event_name != 'publish' }}"
     needs: build-maven-postgres-dataprovider-plugin
-    uses: mosip/kattu/.github/workflows/maven-publish-to-nexus.yml@gpgupdate-masterj21
+    uses: mosip/kattu/.github/workflows/maven-publish-to-nexus.yml@v0.0.1
     with:
       SERVICE_LOCATION: ./postgres-dataprovider-plugin
     secrets:
@@ -187,7 +187,7 @@ jobs:
   sonar_analysis_postgres-dataprovider-plugin:
     needs: build-maven-postgres-dataprovider-plugin
     if: "${{  github.event_name != 'pull_request' }}"
-    uses: mosip/kattu/.github/workflows/maven-sonar-analysis-new.yml@develop
+    uses: mosip/kattu/.github/workflows/maven-sonar-analysis.yml@v0.0.1
     with:
       SERVICE_LOCATION: postgres-dataprovider-plugin
     secrets:
