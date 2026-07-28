@@ -70,6 +70,7 @@
     </distributionManagement>
     <properties>
         <sonar.exclusions>src/test/**</sonar.exclusions>
+        <maven.sonar.version>3.11.0.3922</maven.sonar.version>
         <java.version>21</java.version>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
