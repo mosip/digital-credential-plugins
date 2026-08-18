@@ -7,7 +7,7 @@
 
       <groupId>io.inji.certify</groupId>
       <artifactId>mock-certify-plugin</artifactId>
-      <version>1.0.0-alpha.1-SNAPSHOT</version>
+      <version>1.0.0-alpha.1</version>
       <packaging>jar</packaging>
 
       <name>mock-certify-integration-impl</name>
@@ -46,7 +46,7 @@
         <maven-surefire-plugin.version>3.2.5</maven-surefire-plugin.version>
         <maven-gpg-plugin.version>1.5</maven-gpg-plugin.version>
         <maven-source-plugin>2.2.1</maven-source-plugin>
-        <central.publishing.maven.plugin.version>0.7.0</central.publishing.maven.plugin.version>
+        <central.publishing.maven.plugin.version>0.8.0</central.publishing.maven.plugin.version>
         <git-commit-id-plugin.version>3.0.1</git-commit-id-plugin.version>
         <maven.jacoco.version>0.8.11</maven.jacoco.version>
         <maven-javadoc-plugin.version>3.6.3</maven-javadoc-plugin.version>
@@ -63,7 +63,7 @@
         <dependency>
             <groupId>io.inji.certify</groupId>
             <artifactId>certify-core</artifactId>
-            <version>1.0.0-alpha.1-SNAPSHOT</version>
+            <version>1.0.0-alpha.1</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
