@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.inji.certify.sunbirdrc</groupId>
     <artifactId>sunbird-rc-certify-integration-impl</artifactId>
-    <version>1.0.0-alpha.1</version>
+    <version>1.0.0-beta.1-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>sunbird-rc-certify-integration-impl</name>
@@ -52,7 +52,7 @@
         <dependency>
             <groupId>io.inji.certify</groupId>
             <artifactId>certify-integration-api</artifactId>
-            <version>1.0.0-alpha.1</version>
+            <version>1.0.0-beta.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
 
